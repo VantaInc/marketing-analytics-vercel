@@ -1,0 +1,51 @@
+/* Design tokens for the Re-Engage dashboard (approximation of the alp-token
+   set used in the design mock; replace with the real design-system stylesheet
+   if/when one is available in the repo). */
+:root {
+  --alp-token-bg-default: #ffffff;
+  --alp-token-text-default: #1b1b21;
+  --alp-token-text-secondary: #6d6d78;
+  --alp-token-icon-secondary: #6d6d78;
+
+  --alp-token-border-default: #d5d5dc;
+  --alp-token-border-weak: #e7e7ec;
+
+  --alp-token-bg-neutralWeak: #f4f4f6;
+  --alp-token-bg-neutralSubtle: #e9e9ee;
+  --alp-token-bg-accentBlueWeak: #eef4ff;
+  --alp-token-text-accentBlue: #2456d6;
+  --alp-token-bg-warningWeak: #fdf1dc;
+  --alp-token-text-warning: #a8620a;
+  --alp-token-bg-successWeak: #e3f6e9;
+  --alp-token-text-success: #157a3c;
+
+  --alp-token-white: #ffffff;
+  --alp-token-gray-200: #f1f1f4;
+  --alp-token-gray-300: #e4e4e9;
+  --alp-token-gray-400: #cbcbd3;
+  --alp-token-gray-700: #85858f;
+  --alp-token-gray-800: #55555e;
+  --alp-token-gray-900: #85858f;
+  --alp-token-gray-1000: #1b1b21;
+
+  --alp-token-purple-400: #d5bcf7;
+  --alp-token-purple-600: #b28aee;
+  --alp-token-purple-800: #7d3ce0;
+  --alp-token-purple-900: #6425c4;
+  --alp-token-purple-1000: #491399;
+
+  --alp-token-link-default: #2456d6;
+  --alp-token-link-hover: #163a9b;
+
+  --alp-token-borderRadius-round: 999px;
+  --alp-token-borderRadius-button: 8px;
+  --alp-token-borderRadius-card: 12px;
+  --alp-token-borderRadius-xs: 4px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
