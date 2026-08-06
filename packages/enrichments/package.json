@@ -1,0 +1,21 @@
+{
+  "name": "@vanta/enrichments",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vanta/eslint-config": "workspace:*",
+    "@vanta/typescript-config": "workspace:*",
+    "@types/node": "^22.15.0",
+    "eslint": "^9.28.0",
+    "typescript": "^5.9.0"
+  }
+}

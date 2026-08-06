@@ -1,0 +1,27 @@
+{
+  "name": "@vanta/jira",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./connect": "./src/connect.ts",
+    "./scopes": "./src/scopes.ts",
+    "./web-api": "./src/web-api.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vercel/connect": "^0.2.0"
+  },
+  "devDependencies": {
+    "@vanta/eslint-config": "workspace:*",
+    "@vanta/typescript-config": "workspace:*",
+    "@types/node": "^22.15.0",
+    "eslint": "^9.28.0",
+    "typescript": "^5.9.0"
+  }
+}

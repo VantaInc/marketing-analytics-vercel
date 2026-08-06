@@ -1,0 +1,74 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "globalPassThroughEnv": [
+    "EDGE_CONFIG",
+    "GOOGLE_SERVICE_ACCOUNT_JSON_B64",
+    "INTERNAL_APP_IDEAS_RANGE",
+    "INTERNAL_APP_IDEAS_SPREADSHEET_ID",
+    "AUTH_SECRET",
+    "JIRA_CONNECTOR_UID",
+    "NEXT_PUBLIC_VERCEL_APP_CLIENT_ID",
+    "NODE_ENV",
+    "SLACK_CONNECTOR_UID",
+    "SNOWFLAKE_ACCOUNT",
+    "SNOWFLAKE_DATABASE",
+    "SNOWFLAKE_PRIVATE_KEY",
+    "SNOWFLAKE_ROLE",
+    "SNOWFLAKE_USERNAME",
+    "SNOWFLAKE_WAREHOUSE",
+    "VERCEL_APP_CLIENT_SECRET",
+    "VERCEL_ENV",
+    "VERCEL_API_TOKEN",
+    "VERCEL_CONNECT_ATLASSIAN_JIRA",
+    "VERCEL_CONNECT_SLACK_CONNECTOR",
+    "VERCEL_ORG_ID",
+    "VERCEL_TEAM_ID",
+    "VANTA_AUTH_ALLOWED_EMAIL_DOMAINS",
+    "VANTA_AUTH_ADMIN_EMAILS",
+    "VANTA_AUTH_BYPASS_SECRET",
+    "VANTA_AUTH_CALLBACK_ORIGIN",
+    "VANTA_AUTH_CLIENT_ID",
+    "VANTA_AUTH_CLIENT_SECRET",
+    "VANTA_AUTH_EDGE_CONFIG_TEAM_ID",
+    "VANTA_AUTH_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "@vanta/enrichments#build": {
+      "outputs": []
+    },
+    "@vanta/google-sheets#build": {
+      "outputs": []
+    },
+    "@vanta/jira#build": {
+      "outputs": []
+    },
+    "@vanta/auth#build": {
+      "outputs": []
+    },
+    "@vanta/slack#build": {
+      "outputs": []
+    },
+    "@vanta/snowflake#build": {
+      "outputs": []
+    },
+    "@vanta/ui#build": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    }
+  }
+}

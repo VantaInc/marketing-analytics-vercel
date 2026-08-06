@@ -1,0 +1,25 @@
+{
+  "name": "base-internal-app-repository",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{css,js,json,md,mjs,ts,tsx,yml,yaml}\" \"!pnpm-lock.yaml\"",
+    "new:app": "node scripts/create-app.mjs",
+    "new:slack-app": "node scripts/create-slack-app.mjs",
+    "new:package": "node scripts/create-package.mjs",
+    "rename:starter": "node scripts/rename-starter.mjs"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.0",
+    "turbo": "^2.8.0",
+    "typescript": "^5.9.0"
+  }
+}

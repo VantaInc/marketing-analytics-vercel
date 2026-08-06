@@ -1,0 +1,4 @@
+interface:
+  display_name: "Internal Apps"
+  short_description: "Navigate the internal-apps monorepo."
+  default_prompt: "Use this skill when working in the internal-apps monorepo."
