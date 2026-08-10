@@ -150,6 +150,152 @@ function TrendChart({ series, grain }: { series: ChannelSeries; grain: Grain }) 
   );
 }
 
+/* -------------------------------- funnel ---------------------------------- */
+
+function FunnelPanel({
+  exposed,
+  mql,
+  s0,
+  s2,
+  pipelineArr,
+}: {
+  exposed: number;
+  mql: number;
+  s0: number;
+  s2: number;
+  pipelineArr: number;
+}) {
+  const steps = [
+    { label: "Exposed", value: fmt(exposed) },
+    { label: "MQLs", value: fmt(mql) },
+    { label: "S0", value: fmt(s0) },
+    { label: "S2", value: fmt(s2) },
+  ];
+
+  const transitions = [
+    { from: "Exposed", to: "MQL", actual: exposed > 0 ? (mql / exposed) * 100 : 0, plan: 3 },
+    { from: "MQL", to: "S0", actual: mql > 0 ? (s0 / mql) * 100 : 0, plan: 20 },
+    { from: "S0", to: "S2", actual: s0 > 0 ? (s2 / s0) * 100 : 0, plan: 43 },
+  ];
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 24,
+        padding: "20px 24px",
+        border: "1px solid var(--alp-token-border-weak)",
+        borderRadius: "var(--alp-token-borderRadius-card)",
+        background: "var(--alp-token-bg-neutralWeak)",
+      }}
+    >
+      {/* Step counts */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+        {steps.map((s, i) => (
+          <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                padding: "10px 18px",
+                background: "var(--alp-token-white)",
+                border: "1px solid var(--alp-token-border-weak)",
+                borderRadius: "var(--alp-token-borderRadius-button)",
+                minWidth: 84,
+              }}
+            >
+              <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)", fontWeight: 500, letterSpacing: "0.02em" }}>
+                {s.label.toUpperCase()}
+              </span>
+              <span style={{ fontSize: "1.375rem", lineHeight: 1.15, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                {s.value}
+              </span>
+            </div>
+            {i < steps.length - 1 ? (
+              <span style={{ color: "var(--alp-token-gray-400)", fontSize: 14, padding: "0 2px" }}>›</span>
+            ) : null}
+          </div>
+        ))}
+        <div style={{ width: 1, height: 44, background: "var(--alp-token-border-weak)", margin: "0 14px" }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: "10px 18px" }}>
+          <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)", fontWeight: 500, letterSpacing: "0.02em" }}>
+            PIPELINE
+          </span>
+          <span style={{ fontSize: "1.375rem", lineHeight: 1.15, fontWeight: 600, color: "var(--alp-token-purple-900)" }}>
+            {money(pipelineArr)}
+          </span>
+        </div>
+      </div>
+
+      {/* Conversion rates vs. plan */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <span style={{ ...text12, fontWeight: 500 }}>Step conversion vs. the rate the brief assumed</span>
+        {transitions.map((t) => {
+          const ratio = t.plan > 0 ? t.actual / t.plan : 0;
+          const off = ratio < 0.8;
+          const ahead = ratio >= 1;
+          const axisMax = Math.max(t.actual, t.plan) * 1.35 || 1;
+          const barW = Math.min(100, (t.actual / axisMax) * 100);
+          const planPos = Math.min(100, (t.plan / axisMax) * 100);
+          const color = off
+            ? "var(--alp-token-text-warning)"
+            : ahead
+              ? "var(--alp-token-text-success)"
+              : "var(--alp-token-text-default)";
+          const barColor = off ? "var(--alp-token-bg-warningWeak)" : "var(--alp-token-purple-800)";
+          return (
+            <div key={`${t.from}-${t.to}`} style={{ display: "grid", gridTemplateColumns: "132px 1fr 96px", gap: 16, alignItems: "center" }}>
+              <span style={{ ...text14, color: "var(--alp-token-text-secondary)" }}>
+                {t.from} → {t.to}
+              </span>
+              <div style={{ position: "relative", height: 22, borderRadius: "var(--alp-token-borderRadius-xs)", background: "var(--alp-token-white)", border: "1px solid var(--alp-token-border-weak)" }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    width: `${barW}%`,
+                    borderRadius: "var(--alp-token-borderRadius-xs)",
+                    background: barColor,
+                    border: off ? "1px solid var(--alp-token-text-warning)" : "none",
+                    boxSizing: "border-box",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: -3,
+                    bottom: -3,
+                    left: `${planPos}%`,
+                    width: 2,
+                    background: "var(--alp-token-gray-1000)",
+                    borderRadius: 1,
+                  }}
+                  title={`Plan: ${t.plan}%`}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0 }}>
+                <span style={{ ...text14, fontWeight: 600, color, fontVariantNumeric: "tabular-nums" }}>
+                  {t.actual.toFixed(t.actual < 10 ? 1 : 0)}%
+                </span>
+                <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                  plan {t.plan}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+        <span style={text12}>
+          Vertical tick marks the planned rate. Amber = more than 20% below plan. These rates drive the pipeline math — the brief&apos;s $2.6M assumes 3% / 20% / 43% holds.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function GrainToggle({ grain, onChange }: { grain: Grain; onChange: (g: Grain) => void }) {
   const btn = (active: boolean): CSSProperties => ({
     border: "none",
@@ -218,19 +364,6 @@ export default function Dashboard({ data }: { data: DashboardData }) {
   };
 
   const activeSeries = d.series[channel];
-
-  // Funnel steps with the actual conversion rate between each, compared to the
-  // rates the brief assumed. Amber when actual is under 80% of plan.
-  const mqlToS0 = d.funnel.mql > 0 ? (d.funnel.s0 / d.funnel.mql) * 100 : 0;
-  const s0ToS2 = d.funnel.s0 > 0 ? (d.funnel.s2 / d.funnel.s0) * 100 : 0;
-  const cohortToMql = d.exposed > 0 ? (d.funnel.mql / d.exposed) * 100 : 0;
-  const funnelSteps = [
-    { label: "Exposed", value: fmt(d.exposed), rate: `${cohortToMql.toFixed(1)}%`, plan: "3.0%", rateOffPlan: cohortToMql < 3 * 0.8 },
-    { label: "MQLs", value: fmt(d.funnel.mql), rate: `${mqlToS0.toFixed(0)}%`, plan: "20%", rateOffPlan: mqlToS0 < 20 * 0.8 },
-    { label: "S0", value: fmt(d.funnel.s0), rate: `${s0ToS2.toFixed(0)}%`, plan: "43%", rateOffPlan: s0ToS2 < 43 * 0.8 },
-    { label: "S2", value: fmt(d.funnel.s2), rate: "", plan: "", rateOffPlan: false },
-    { label: "Pipeline", value: money(d.funnel.pipelineArr), rate: "", plan: "", rateOffPlan: false },
-  ];
 
   // Cohort email list health — fatigue signal across all sends.
   const totalUnsubs = d.email.reduce((s, e) => s + e.unsubs, 0);
@@ -384,31 +517,13 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               })}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 4 }}>
-              <span style={label12}>Funnel conversion — actual vs. the rates the brief assumed</span>
-              <div style={{ display: "flex", alignItems: "stretch", gap: 0, flexWrap: "wrap" }}>
-                {funnelSteps.map((s, i) => (
-                  <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "10px 20px 10px 0", minWidth: 96 }}>
-                      <span style={text12}>{s.label}</span>
-                      <span style={{ fontSize: "1.25rem", lineHeight: 1.2, fontWeight: 600 }}>{s.value}</span>
-                    </div>
-                    {i < funnelSteps.length - 1 ? (
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "0 20px 0 0" }}>
-                        <span style={{ ...text12, fontVariantNumeric: "tabular-nums", color: s.rateOffPlan ? "var(--alp-token-text-warning)" : "var(--alp-token-text-secondary)", fontWeight: 600 }}>
-                          {s.rate}
-                        </span>
-                        <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)" }}>plan {s.plan}</span>
-                        <span style={{ ...text12, color: "var(--alp-token-gray-400)" }}>→</span>
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-              <span style={text12}>
-                Conversion rates matter more than the counts — the brief&apos;s pipeline math assumes 3% inquiry→MQL, 20% MQL→S0, and 43% S0→S2. Rates flagged in amber are meaningfully below plan.
-              </span>
-            </div>
+            <FunnelPanel
+              exposed={d.exposed}
+              mql={d.funnel.mql}
+              s0={d.funnel.s0}
+              s2={d.funnel.s2}
+              pipelineArr={d.funnel.pipelineArr}
+            />
           </section>
 
           {/* Audience behavior */}
