@@ -31,6 +31,17 @@ const OVERLAP_COLORS = [
   "var(--alp-token-purple-400)",
   "var(--alp-token-gray-400)",
 ];
+const overlapColor = (i: number) => OVERLAP_COLORS[i % OVERLAP_COLORS.length] ?? "var(--alp-token-gray-400)";
+
+const AXIS_LABELS = [
+  { label: "4%", y: 14 },
+  { label: "3%", y: 54 },
+  { label: "2%", y: 94 },
+  { label: "1%", y: 134 },
+  { label: "0%", y: 174 },
+];
+
+const WEEK_LABELS = ["Wk 1", "Wk 2", "Wk 3", "Wk 4", "Wk 5", "Wk 6", "Wk 7"];
 
 type Channel = "email" | "incentive" | "paid" | "sdr";
 
@@ -100,8 +111,14 @@ export default function Dashboard({ data }: { data: DashboardData }) {
     };
   });
 
-  const bars = (rows: [string, number][]) =>
-    rows.map(([label, v]) => ({ label, value: fmt(v), w: (v / rows[0][1]) * 100 }));
+  const bars = (rows: [string, number][]) => {
+    const max = rows[0]?.[1] ?? 0;
+    return rows.map(([label, v]) => ({
+      label,
+      value: fmt(v),
+      w: max > 0 ? (v / max) * 100 : 0,
+    }));
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--alp-token-bg-default)", color: "var(--alp-token-text-default)", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", letterSpacing: "0.01em" }}>
@@ -190,16 +207,16 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                     <line key={y} x1={40} y1={y} x2={630} y2={y} stroke="var(--alp-token-gray-200)" strokeWidth={1} />
                   ))}
                   <line x1={40} y1={170} x2={630} y2={170} stroke="var(--alp-token-gray-400)" strokeWidth={1} />
-                  {[["4%", 14], ["3%", 54], ["2%", 94], ["1%", 134], ["0%", 174]].map(([t, y]) => (
-                    <text key={t as string} x={32} y={y as number} textAnchor="end" fontSize={11} fill="var(--alp-token-gray-900)">{t}</text>
+                  {AXIS_LABELS.map(({ label, y }) => (
+                    <text key={label} x={32} y={y} textAnchor="end" fontSize={11} fill="var(--alp-token-gray-900)">{label}</text>
                   ))}
-                  {["Wk 1", "Wk 2", "Wk 3", "Wk 4", "Wk 5", "Wk 6", "Wk 7"].map((w, i) => (
+                  {WEEK_LABELS.map((w, i) => (
                     <text key={w} x={px(i)} y={192} textAnchor={i === 0 ? "start" : i === 6 ? "end" : "middle"} fontSize={11} fill="var(--alp-token-gray-900)">{w}</text>
                   ))}
                   <polyline points={pts(d.hold)} fill="none" stroke="var(--alp-token-gray-800)" strokeWidth={2} strokeDasharray="4 3" />
                   <polyline points={pts(d.exp)} fill="none" stroke="var(--alp-token-purple-800)" strokeWidth={2.5} />
-                  <circle cx={px(d.hold.length - 1)} cy={py(d.hold[d.hold.length - 1])} r={3.5} fill="var(--alp-token-gray-800)" />
-                  <circle cx={px(d.exp.length - 1)} cy={py(d.exp[d.exp.length - 1])} r={3.5} fill="var(--alp-token-purple-800)" />
+                  <circle cx={px(d.hold.length - 1)} cy={py(d.hold.at(-1) ?? 0)} r={3.5} fill="var(--alp-token-gray-800)" />
+                  <circle cx={px(d.exp.length - 1)} cy={py(d.exp.at(-1) ?? 0)} r={3.5} fill="var(--alp-token-purple-800)" />
                 </svg>
               </div>
             </div>
@@ -268,13 +285,13 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                 <span style={label12}>Channel overlap, exposed cohort</span>
                 <div style={{ display: "flex", height: 12, borderRadius: "var(--alp-token-borderRadius-round)", overflow: "hidden", gap: 2 }}>
                   {d.overlap.map(([label, pct], i) => (
-                    <div key={label} style={{ height: 12, background: OVERLAP_COLORS[i], width: `${pct}%` }} />
+                    <div key={label} style={{ height: 12, background: overlapColor(i), width: `${pct}%` }} />
                   ))}
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px" }}>
                   {d.overlap.map(([label, pct], i) => (
                     <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6, ...text12 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 2, background: OVERLAP_COLORS[i] }} />
+                      <span style={{ width: 8, height: 8, borderRadius: 2, background: overlapColor(i) }} />
                       {label} · {pct}%
                     </span>
                   ))}
