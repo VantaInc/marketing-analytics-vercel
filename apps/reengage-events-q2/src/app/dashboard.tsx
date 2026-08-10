@@ -53,11 +53,6 @@ type Grain = "day" | "week";
 
 const EMAIL_COLS = "76px 66px 86px 74px 68px 1fr 58px 104px 58px 48px";
 
-// Funnel conversion rows: label | shared attainment axis | actual / goal
-const FUNNEL_COLS = "148px 1fr 104px";
-const ATTAINMENT_MAX = 150; // axis runs 0-150% of goal
-const ATTAINMENT_TICKS = [0, 50, 100, 150];
-
 const CHANNEL_TABS: { key: ChannelKey; label: string }[] = [
   { key: "email", label: "Email nurture" },
   { key: "incentive", label: "Incentive" },
@@ -234,109 +229,67 @@ function FunnelPanel({
         </div>
       </div>
 
-      {/* Conversion vs. plan — shared attainment axis so steps with very
-          different rates (3% vs. 43%) are directly comparable. */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-          <span style={{ ...text12, fontWeight: 500 }}>Step conversion — how each rate is tracking against its own goal</span>
-          <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)" }}>bar = % of goal reached</span>
-        </div>
-
-        {/* Shared axis header */}
-        <div style={{ display: "grid", gridTemplateColumns: FUNNEL_COLS, gap: 16, alignItems: "end" }}>
-          <span />
-          <div style={{ position: "relative", height: 14 }}>
-            {ATTAINMENT_TICKS.map((tick) => (
-              <span
-                key={tick}
-                style={{
-                  position: "absolute",
-                  left: `${(tick / ATTAINMENT_MAX) * 100}%`,
-                  transform: "translateX(-50%)",
-                  fontSize: "0.6875rem",
-                  color: tick === 100 ? "var(--alp-token-text-default)" : "var(--alp-token-text-secondary)",
-                  fontWeight: tick === 100 ? 600 : 400,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {tick === 100 ? "goal" : `${tick}%`}
-              </span>
-            ))}
-          </div>
-          <span style={{ ...text12, textAlign: "right", fontWeight: 500 }}>actual / goal</span>
-        </div>
-
+      {/* Conversion rates vs. plan */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <span style={{ ...text12, fontWeight: 500 }}>Step conversion vs. the rate the brief assumed</span>
         {transitions.map((t) => {
-          const attainment = t.plan > 0 ? (t.actual / t.plan) * 100 : 0;
-          const off = attainment < 80;
-          const ahead = attainment >= 100;
-          const barW = Math.min(100, (attainment / ATTAINMENT_MAX) * 100);
-          const goalPos = (100 / ATTAINMENT_MAX) * 100;
-          const barColor = off
+          const ratio = t.plan > 0 ? t.actual / t.plan : 0;
+          const off = ratio < 0.8;
+          const ahead = ratio >= 1;
+          const axisMax = Math.max(t.actual, t.plan) * 1.35 || 1;
+          const barW = Math.min(100, (t.actual / axisMax) * 100);
+          const planPos = Math.min(100, (t.plan / axisMax) * 100);
+          const color = off
             ? "var(--alp-token-text-warning)"
             : ahead
-              ? "var(--alp-token-purple-900)"
-              : "var(--alp-token-purple-600)";
+              ? "var(--alp-token-text-success)"
+              : "var(--alp-token-text-default)";
+          const barColor = off ? "var(--alp-token-bg-warningWeak)" : "var(--alp-token-purple-800)";
           return (
-            <div key={`${t.from}-${t.to}`} style={{ display: "grid", gridTemplateColumns: FUNNEL_COLS, gap: 16, alignItems: "center" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                <span style={{ ...text14, fontWeight: 500 }}>
-                  {t.from} → {t.to}
-                </span>
-                <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)" }}>
-                  {attainment >= 100 ? "at or above goal" : `${(100 - attainment).toFixed(0)}% short of goal`}
-                </span>
-              </div>
-
-              <div style={{ position: "relative", height: 26 }}>
-                {/* track */}
-                <div style={{ position: "absolute", top: 7, left: 0, right: 0, height: 12, borderRadius: "var(--alp-token-borderRadius-round)", background: "var(--alp-token-white)", border: "1px solid var(--alp-token-border-weak)" }} />
-                {/* fill */}
+            <div key={`${t.from}-${t.to}`} style={{ display: "grid", gridTemplateColumns: "132px 1fr 96px", gap: 16, alignItems: "center" }}>
+              <span style={{ ...text14, color: "var(--alp-token-text-secondary)" }}>
+                {t.from} → {t.to}
+              </span>
+              <div style={{ position: "relative", height: 22, borderRadius: "var(--alp-token-borderRadius-xs)", background: "var(--alp-token-white)", border: "1px solid var(--alp-token-border-weak)" }}>
                 <div
                   style={{
                     position: "absolute",
-                    top: 7,
+                    top: 0,
+                    bottom: 0,
                     left: 0,
-                    height: 12,
                     width: `${barW}%`,
-                    borderRadius: "var(--alp-token-borderRadius-round)",
+                    borderRadius: "var(--alp-token-borderRadius-xs)",
                     background: barColor,
+                    border: off ? "1px solid var(--alp-token-text-warning)" : "none",
+                    boxSizing: "border-box",
                   }}
                 />
-                {/* goal line, same x for every row */}
-                <div style={{ position: "absolute", top: 0, bottom: 0, left: `${goalPos}%`, width: 2, background: "var(--alp-token-gray-1000)", borderRadius: 1 }} />
-                {/* attainment label riding the bar end */}
-                <span
+                <div
                   style={{
                     position: "absolute",
-                    top: 5,
-                    left: `${barW}%`,
-                    transform: "translateX(6px)",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    fontVariantNumeric: "tabular-nums",
-                    color: off ? "var(--alp-token-text-warning)" : "var(--alp-token-text-default)",
-                    whiteSpace: "nowrap",
+                    top: -3,
+                    bottom: -3,
+                    left: `${planPos}%`,
+                    width: 2,
+                    background: "var(--alp-token-gray-1000)",
+                    borderRadius: 1,
                   }}
-                >
-                  {attainment.toFixed(0)}%
-                </span>
+                  title={`Plan: ${t.plan}%`}
+                />
               </div>
-
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "flex-end", gap: 4 }}>
-                <span style={{ ...text14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0 }}>
+                <span style={{ ...text14, fontWeight: 600, color, fontVariantNumeric: "tabular-nums" }}>
                   {t.actual.toFixed(t.actual < 10 ? 1 : 0)}%
                 </span>
-                <span style={{ fontSize: "0.75rem", color: "var(--alp-token-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-                  / {t.plan}%
+                <span style={{ fontSize: "0.6875rem", color: "var(--alp-token-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                  plan {t.plan}%
                 </span>
               </div>
             </div>
           );
         })}
-
         <span style={text12}>
-          Every bar is measured against its own goal, so the three steps are comparable even though the underlying rates differ (3% / 20% / 43%). The black line is the goal; amber is more than 20% short. Raw rates on the right.
+          Vertical tick marks the planned rate. Amber = more than 20% below plan. These rates drive the pipeline math — the brief&apos;s $2.6M assumes 3% / 20% / 43% holds.
         </span>
       </div>
     </div>
