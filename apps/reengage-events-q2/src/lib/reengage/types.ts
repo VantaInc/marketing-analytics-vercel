@@ -44,15 +44,37 @@ export interface SegmentData {
 
 export type DashboardData = Record<Segment, SegmentData>;
 
-// Campaign constants — update when final dates/holdout are locked.
+// Campaign constants — FY27Q2 Events Re-Engage.
+// Measurement clock is anchored on the email launch (NU1), matching
+// LAUNCH_DATE in queries.ts. Flight: paid live Aug 5 · Signal-2 nurture
+// NU1 Aug 19, NU2 Aug 27, NU3 Sep 4, NU4 Sep 15 · incentive offer Sep 24.
+const EMAIL_LAUNCH = new Date("2026-08-19T00:00:00Z");
+const WINDOW_DAYS = 90;
+
+function daysSinceLaunch(): number {
+  const ms = Date.now() - EMAIL_LAUNCH.getTime();
+  return Math.floor(ms / 86_400_000);
+}
+
+function phaseLabel(): string {
+  const d = daysSinceLaunch();
+  if (d < 0) return `Launches Aug 19 · in ${Math.abs(d)} days`;
+  return `Day ${Math.min(d, WINDOW_DAYS)} of ${WINDOW_DAYS}`;
+}
+
 export const CAMPAIGN = {
-  key: "camp_signal2_q3",
+  key: "fy27q2_events_reengage",
   team: "Growth Marketing",
-  title: "Signal-2 Re-engagement",
-  dayOf: 45,
-  dayTotal: 90,
+  title: "Q2 Events Re-Engage",
+  windowDays: WINDOW_DAYS,
+  get phase() {
+    return phaseLabel();
+  },
+  get isPreLaunch() {
+    return daysSinceLaunch() < 0;
+  },
   subtitle:
-    "Exposed cohort vs. a 20% holdout suppressed from all channels. Launched Jun 22, 2026 · final incrementality read Sep 20, 2026.",
-  dataThrough: "Data through Aug 3, 2026 · snapshot refreshed Mondays",
-  prelimBadge: "Preliminary — final read Sep 20",
+    "Exposed cohort vs. a 10% holdout (cut per segment) suppressed from paid, email, incentive, and SDR. Email launch Aug 19, 2026 · final incrementality read Nov 17, 2026.",
+  dataThrough: "Pre-launch — fixture data, not live campaign results",
+  prelimBadge: "Fixture data — not live results",
 };

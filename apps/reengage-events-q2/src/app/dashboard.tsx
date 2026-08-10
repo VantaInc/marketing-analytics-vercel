@@ -136,7 +136,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <h1 style={{ margin: 0, fontSize: "1.5rem", lineHeight: 1.17, fontWeight: 600 }}>{CAMPAIGN.title}</h1>
-              <span style={badge}>Day {CAMPAIGN.dayOf} of {CAMPAIGN.dayTotal}</span>
+              <span style={badge}>{CAMPAIGN.phase}</span>
               <span style={badge}>{CAMPAIGN.key}</span>
             </div>
             <p style={{ margin: 0, ...text14, color: "var(--alp-token-text-secondary)", maxWidth: 720 }}>{CAMPAIGN.subtitle}</p>
@@ -411,7 +411,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
           {/* Methodology */}
           <footer style={{ borderTop: "1px solid var(--alp-token-border-weak)", paddingTop: 20 }}>
             <p style={{ margin: 0, ...text12, maxWidth: 860 }}>
-              Methodology: all metrics join to the audience assignment table (one row per contact: exposed/holdout, segment, source event, list, assignment date), keyed on {CAMPAIGN.key}. Cohort metrics are frozen every Monday in the weekly snapshot table; this view reads the Aug 3 snapshot. Built on Snowflake · dbt · Vercel.
+              Methodology: all metrics join to the audience assignment table (one row per contact: exposed/holdout, segment, source event, list, assignment date), keyed on {CAMPAIGN.key}. Holdout is 10% cut per segment from the upmarket and downmarket lists, suppressed from paid, email, incentive, and SDR. Email engagement is keyed on utm_campaign + utm_content (nu-1..nu-4); SDR via SFDC campaign membership. Built on Snowflake · Vercel.
             </p>
           </footer>
         </main>
