@@ -1,19 +1,60 @@
-export type Segment = "all" | "up" | "down";
+// Segment filter was removed from the UI — the dashboard reports the full
+// cohort. Kept as a single-key map so a segment cut can return later without
+// reshaping the data layer.
+export type Segment = "all";
 
 export interface TargetRaw {
   label: string;
   actual: number;
   target: number;
-  pace: number;
-  money?: boolean;
+  money?: boolean; // render as $M / $K
+}
+
+// Cohort funnel with the conversion rates between steps — the brief assumes
+// 3% inquiry→MQL, 20% MQL→S0, 43% S0→S2. Showing actual rates is the point.
+export interface FunnelRaw {
+  mql: number;
+  s0: number;
+  s2: number;
+  pipelineArr: number; // in $M
+}
+
+// Guards the whole experiment: any holdout contact receiving a send voids the
+// incrementality read. Sourced from the leak-check query after every send.
+export interface HoldoutIntegrity {
+  leaks: number;
+  sendsChecked: number;
+  checkedOn: string;
 }
 
 export interface EmailRaw {
   name: string; // utm_content: nu-1..nu-4
+  sentOn: string; // send date, e.g. "Aug 19"
   delivered: number;
+  opens: number; // directional only (Apple MPP inflates opens)
   clicks: number;
+  unsubs: number;
+  spam: number;
   warm: number; // % of clicks to warm landing paths
+  mqls: number; // MQLs attributed to this send (MQL_UTM_CONTENT)
+  s0: number; // S0s from contacts who clicked this send
   note?: string; // e.g. "in flight"
+}
+
+// One point per day or per week. `values` is keyed by the channel's own
+// breakout: nu-1..nu-4 for email, platform for paid, stage for SDR/incentive.
+export interface SeriesPoint {
+  label: string;
+  values: Record<string, number>;
+}
+
+export type ChannelKey = "email" | "incentive" | "paid" | "sdr";
+
+export interface ChannelSeries {
+  metricLabel: string; // what the lines measure, e.g. "Unique clicks"
+  keys: string[]; // series order, drives colors + legend
+  day: SeriesPoint[];
+  week: SeriesPoint[];
 }
 
 export interface PaidRaw {
@@ -31,12 +72,14 @@ export interface SegmentData {
   ci: [number, number]; // 95% CI on lift, in percent
   exp: number[]; // cumulative MQL % by week
   hold: number[];
+  integrity: HoldoutIntegrity;
   targets: TargetRaw[];
-  scoreExp: number;
-  scoreHold: number;
+  funnel: FunnelRaw;
+  scoreExp: number; // avg lead-score delta vs. day-0 baseline, exposed
+  scoreHold: number; // same, holdout
   engaged: number; // % of exposed with any engagement
-  overlap: [string, number][];
   email: EmailRaw[];
+  series: Record<ChannelKey, ChannelSeries>;
   inc: [string, number][];
   paid: PaidRaw[];
   sdr: [string, number][] | null; // null = SDR motion not run on this segment
