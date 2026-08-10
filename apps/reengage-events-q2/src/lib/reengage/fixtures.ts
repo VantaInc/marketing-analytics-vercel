@@ -1,0 +1,137 @@
+// Fixture data mirroring the approved design mock (Design.pdf).
+// NOT real campaign numbers — used while REENGAGE_USE_FIXTURES=true.
+import type { DashboardData } from "./types";
+
+export const FIXTURES: DashboardData = {
+  all: {
+    exposed: 6612,
+    holdout: 1653,
+    expMql: 212,
+    holdMql: 41,
+    ci: [-7, 79],
+    exp: [0.4, 0.9, 1.5, 2.0, 2.5, 2.9, 3.2],
+    hold: [0.3, 0.7, 1.2, 1.6, 2.0, 2.3, 2.5],
+    targets: [
+      { label: "MQLs", actual: 212, target: 450, pace: 225 },
+      { label: "S0 opportunities", actual: 38, target: 90, pace: 45 },
+      { label: "S2 opportunities", actual: 21, target: 65, pace: 32 },
+      { label: "Pipeline", actual: 0.84, target: 2.6, pace: 1.3, money: true },
+    ],
+    scoreExp: 6.4,
+    scoreHold: 1.1,
+    engaged: 38,
+    overlap: [
+      ["Email only", 41],
+      ["Email + paid", 22],
+      ["Email + SDR", 9],
+      ["3+ channels", 6],
+      ["No engagement", 22],
+    ],
+    email: [
+      { name: "nu-1", delivered: 6412, clicks: 244, warm: 62 },
+      { name: "nu-2", delivered: 5978, clicks: 173, warm: 58 },
+      { name: "nu-3", delivered: 4721, clicks: 113, warm: 55 },
+      { name: "nu-4", delivered: 2140, clicks: 66, warm: 60, note: "in flight" },
+    ],
+    inc: [
+      ["Redemptions", 214],
+      ["Demos booked", 96],
+      ["Demos completed", 61],
+    ],
+    paid: [
+      { platform: "LinkedIn", reach: "48K", freq: "4.2", ctr: "0.61" },
+      { platform: "Meta", reach: "96K", freq: "6.8", ctr: "0.38" },
+    ],
+    sdr: [
+      ["Contacted", 1240],
+      ["Meetings held", 118],
+      ["S0 created", 38],
+    ],
+  },
+  up: {
+    exposed: 2644,
+    holdout: 661,
+    expMql: 92,
+    holdMql: 15,
+    ci: [-13, 170],
+    exp: [0.5, 1.0, 1.6, 2.2, 2.8, 3.2, 3.5],
+    hold: [0.3, 0.6, 1.0, 1.4, 1.8, 2.1, 2.3],
+    targets: [
+      { label: "MQLs", actual: 92, target: 180, pace: 90 },
+      { label: "S0 opportunities", actual: 21, target: 40, pace: 20 },
+      { label: "S2 opportunities", actual: 12, target: 28, pace: 14 },
+      { label: "Pipeline", actual: 0.52, target: 1.4, pace: 0.7, money: true },
+    ],
+    scoreExp: 8.1,
+    scoreHold: 1.4,
+    engaged: 43,
+    overlap: [
+      ["Email only", 34],
+      ["Email + paid", 19],
+      ["Email + SDR", 17],
+      ["3+ channels", 9],
+      ["No engagement", 21],
+    ],
+    email: [
+      { name: "nu-1", delivered: 2570, clicks: 111, warm: 66 },
+      { name: "nu-2", delivered: 2391, clicks: 79, warm: 61 },
+      { name: "nu-3", delivered: 1893, clicks: 51, warm: 58 },
+      { name: "nu-4", delivered: 858, clicks: 30, warm: 63, note: "in flight" },
+    ],
+    inc: [
+      ["Redemptions", 74],
+      ["Demos booked", 41],
+      ["Demos completed", 28],
+    ],
+    paid: [
+      { platform: "LinkedIn", reach: "31K", freq: "4.8", ctr: "0.68" },
+      { platform: "Meta", reach: "22K", freq: "3.9", ctr: "0.41" },
+    ],
+    sdr: [
+      ["Contacted", 1240],
+      ["Meetings held", 118],
+      ["S0 created", 38],
+    ],
+  },
+  down: {
+    exposed: 3968,
+    holdout: 992,
+    expMql: 120,
+    holdMql: 26,
+    ci: [-25, 77],
+    exp: [0.4, 0.8, 1.4, 1.9, 2.3, 2.7, 3.0],
+    hold: [0.3, 0.7, 1.3, 1.7, 2.1, 2.4, 2.6],
+    targets: [
+      { label: "MQLs", actual: 120, target: 270, pace: 135 },
+      { label: "S0 opportunities", actual: 17, target: 50, pace: 25 },
+      { label: "S2 opportunities", actual: 9, target: 37, pace: 18 },
+      { label: "Pipeline", actual: 0.32, target: 1.2, pace: 0.6, money: true },
+    ],
+    scoreExp: 5.2,
+    scoreHold: 0.9,
+    engaged: 35,
+    overlap: [
+      ["Email only", 46],
+      ["Email + paid", 24],
+      ["Email + SDR", 3],
+      ["3+ channels", 4],
+      ["No engagement", 23],
+    ],
+    email: [
+      { name: "nu-1", delivered: 3842, clicks: 133, warm: 59 },
+      { name: "nu-2", delivered: 3587, clicks: 94, warm: 56 },
+      { name: "nu-3", delivered: 2828, clicks: 62, warm: 53 },
+      { name: "nu-4", delivered: 1282, clicks: 36, warm: 58, note: "in flight" },
+    ],
+    inc: [
+      ["Redemptions", 140],
+      ["Demos booked", 55],
+      ["Demos completed", 33],
+    ],
+    paid: [
+      { platform: "LinkedIn", reach: "17K", freq: "3.4", ctr: "0.49" },
+      { platform: "Meta", reach: "74K", freq: "7.6", ctr: "0.37" },
+    ],
+    sdr: null,
+  },
+};
