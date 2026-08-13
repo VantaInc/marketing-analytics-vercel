@@ -57,9 +57,9 @@ Do not use a Google API key here; API-key access requires the sheet be shared
 2. Share the catalog sheet with the service account's email as **Viewer**.
 3. Base64-encode the JSON key into `GOOGLE_SERVICE_ACCOUNT_JSON_B64`.
 4. Set `DASHBOARD_CATALOG_SPREADSHEET_ID` to the id from the sheet URL.
-5. Register the auth client per
-   [`docs/register-vanta-auth-client.md`](../../docs/register-vanta-auth-client.md)
-   and set the `VANTA_AUTH_*` and `AUTH_SECRET` variables.
+
+The `VANTA_AUTH_*` and `AUTH_SECRET` variables are not needed — see
+[Access](#access).
 
 See [`.env.example`](./.env.example) for the full list. Keep real secrets in
 `.env.local` or Vercel, never in git.
@@ -70,9 +70,33 @@ than falling back — sample data must never be mistaken for the real catalog.
 
 ## Access
 
-The directory requires a Vanta Auth session. Dashboard names and descriptions
-routinely reference customers, segments, and internal metrics, so this app
-should not be deployed without auth configured.
+**Access is enforced by Vercel Authentication on the Vercel project, which
+requires Vanta Okta SSO. This app performs no sign-in of its own.**
+
+Dashboard names and descriptions routinely reference customers, segments, and
+internal metrics, so the directory must never be served without that
+protection. Because the app no longer checks for a session, the project setting
+is the only gate: disabling Vercel Authentication, or deploying this app to a
+project that does not have it, publishes the catalog to anyone with the URL.
+
+Viewers must be members of the Vanta Vercel team. That is a narrower audience
+than the marketing analytics team as a whole.
+
+### Restoring app-level auth
+
+The central auth integration is still wired up but dormant: `src/lib/auth.ts`
+and `src/app/api/auth/*` are intact and unreferenced. They are unused because
+the shared auth broker in [`apps/auth`](../auth) has never been deployed, so
+`VANTA_AUTH_URL` has nowhere to point.
+
+To bring it back:
+
+1. Deploy `apps/auth` as its own Vercel project.
+2. Register this client per
+   [`docs/register-vanta-auth-client.md`](../../docs/register-vanta-auth-client.md).
+3. Set the `VANTA_AUTH_*` and `AUTH_SECRET` variables on this project.
+4. Reinstate the session check in `src/app/page.tsx` and pass
+   `viewerInitials` to `Directory` again.
 
 ## Run locally
 
@@ -83,12 +107,16 @@ pnpm install
 pnpm dev --filter=@vanta/marketing-directory
 ```
 
-Then open http://localhost:3003. You need the `VANTA_AUTH_*` variables set to
-get past the sign-in screen.
+Then open http://localhost:3003. There is no sign-in step; local runs are
+unauthenticated, as is any deployment without Vercel Authentication.
 
 ## Deploy
 
 One Vercel Project, Root Directory `apps/marketing-directory`, framework
-preset Next.js. Set the environment variables above for Preview and Production,
-and add both callback URLs to the auth client's redirect URIs. Full runbook:
+preset Next.js. Set the environment variables above for Preview and Production.
+Full runbook:
 [`docs/create-and-deploy-app.md`](../../docs/create-and-deploy-app.md).
+
+**Turn on Vercel Authentication for the project before the first production
+deploy**, and set it to apply to all deployments. It is the only access control
+this app has.

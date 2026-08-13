@@ -64,7 +64,8 @@ function initials(owner: string): string {
 export type DirectoryProps = {
   dashboards: Dashboard[];
   isSample: boolean;
-  viewerInitials: string;
+  /** Omitted while the app delegates access control to Vercel Authentication. */
+  viewerInitials?: string;
 };
 
 export default function Directory({
@@ -147,22 +148,24 @@ export default function Directory({
             Marketing Reports
           </div>
         </div>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 999,
-            background: "var(--alp-token-purple-200)",
-            color: "var(--alp-token-purple-1100)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 11,
-            fontWeight: 600,
-          }}
-        >
-          {viewerInitials}
-        </div>
+        {viewerInitials ? (
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 999,
+              background: "var(--alp-token-purple-200)",
+              color: "var(--alp-token-purple-1100)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            {viewerInitials}
+          </div>
+        ) : null}
       </header>
 
       <main
