@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+@source "../../../../packages/ui/src";
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+:root {
+  /* Alpaca design tokens (the subset this app uses). */
+  --alp-token-letterSpacing-default: 0.01em;
+  --alp-token-fontWeight-regular: 400;
+  --alp-token-fontWeight-medium: 500;
+  --alp-token-fontWeight-semiBold: 600;
+  --alp-token-fontSize-headingL: 1.5rem;
+  --alp-token-fontSize-bodyL: 1rem;
+  --alp-token-fontSize-bodyM: 0.875rem;
+  --alp-token-fontSize-bodyS: 0.75rem;
+  --alp-token-lineHeight-headingL: 1.16666667;
+  --alp-token-lineHeight-bodyL: 1.5;
+  --alp-token-lineHeight-bodyM: 1.57142857;
+
+  --alp-token-borderRadius-button: 4px;
+  --alp-token-borderRadius-input: 4px;
+  --alp-token-borderRadius-card: 8px;
+  --alp-token-borderRadius-sm: 4px;
+  --alp-token-borderRadius-round: 999px;
+
+  --alp-token-sand-100: #faf8f8;
+  --alp-token-sand-200: #f2efef;
+  --alp-token-sand-300: #ebe8e8;
+  --alp-token-sand-400: #dcdbdb;
+  --alp-token-sand-500: #c9c8c7;
+  --alp-token-sand-700: #a6a4a4;
+  --alp-token-sand-800: #8a8888;
+  --alp-token-sand-900: #6e6c6b;
+  --alp-token-sand-1000: #545352;
+  --alp-token-sand-1400: #151414;
+  --alp-token-white: #ffffff;
+  --alp-token-purple-200: #f1e3ff;
+  --alp-token-purple-900: #8e34e3;
+  --alp-token-purple-1000: #771fcb;
+  --alp-token-purple-1100: #5a1799;
+  --alp-token-green-100: #f2faf4;
+  --alp-token-green-1000: #047023;
+  --alp-token-red-100: #fef5f5;
+  --alp-token-red-1000: #b22d3f;
+  --alp-token-gray-1100a: rgba(110, 108, 107, 0.77);
+
+  --alp-token-text-default: var(--alp-token-sand-1400);
+  --alp-token-text-secondary: var(--alp-token-sand-1000);
+  --alp-token-text-placeholder: var(--alp-token-gray-1100a);
+  --alp-token-text-onColor: var(--alp-token-white);
+  --alp-token-text-success: var(--alp-token-green-1000);
+  --alp-token-text-danger: var(--alp-token-red-1000);
+  --alp-token-link-default: var(--alp-token-purple-900);
+  --alp-token-link-hover: var(--alp-token-purple-1000);
+  --alp-token-icon-secondary: var(--alp-token-sand-900);
+  --alp-token-icon-weak: var(--alp-token-sand-800);
+  --alp-token-bg-default: var(--alp-token-white);
+  --alp-token-bg-inverted: var(--alp-token-sand-1400);
+  --alp-token-bg-neutralWeak: var(--alp-token-sand-100);
+  --alp-token-bg-successWeak: var(--alp-token-green-100);
+  --alp-token-bg-dangerWeak: var(--alp-token-red-100);
+  --alp-token-border-default: var(--alp-token-sand-500);
+  --alp-token-border-defaultHover: var(--alp-token-sand-700);
+  --alp-token-border-weak: var(--alp-token-sand-400);
+  --alp-token-focus-default: var(--alp-token-purple-1100);
+
+  --alp-token-shadow-card: 0px 1px 4px 0px rgba(51, 51, 51, 0.08);
+  --alp-token-shadow-cardHover: 0px 1px 4px 0px rgba(51, 51, 51, 0.08);
+  --alp-token-shadow-buttonHover: 0px 2px 6px 0px rgba(51, 51, 51, 0.12);
+
+  --alp-token-dataViz-category1: #5a1799;
+  --alp-token-dataViz-category2: #962a8d;
+  --alp-token-dataViz-category4: #499bfd;
+  --alp-token-dataViz-category6: #007b96;
+  --alp-token-dataViz-category7: #70d48b;
+
+  /*
+   * shadcn/@vanta/ui tokens, mapped onto Alpaca so shared components (used on
+   * the auth pages) match the directory instead of rendering the starter's
+   * dark theme.
+   */
+  --radius: 0.5rem;
+  --background: var(--alp-token-sand-100);
+  --foreground: var(--alp-token-text-default);
+  --card: var(--alp-token-bg-default);
+  --card-foreground: var(--alp-token-text-default);
+  --popover: var(--alp-token-bg-default);
+  --popover-foreground: var(--alp-token-text-default);
+  --primary: var(--alp-token-purple-1000);
+  --primary-foreground: var(--alp-token-text-onColor);
+  --secondary: var(--alp-token-sand-200);
+  --secondary-foreground: var(--alp-token-text-default);
+  --muted: var(--alp-token-sand-200);
+  --muted-foreground: var(--alp-token-text-secondary);
+  --accent: var(--alp-token-purple-200);
+  --accent-foreground: var(--alp-token-purple-1100);
+  --destructive: var(--alp-token-red-1000);
+  --border: var(--alp-token-border-weak);
+  --input: var(--alp-token-border-default);
+  --ring: var(--alp-token-focus-default);
+}
+
+html {
+  font-size: 100%;
+  background: var(--alp-token-sand-100);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--alp-token-sand-100);
+  font-family: var(--font-sans);
+  color: var(--alp-token-text-default);
+  letter-spacing: var(--alp-token-letterSpacing-default);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--alp-token-link-default);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--alp-token-link-hover);
+}
+
+input,
+select,
+button {
+  font-family: var(--font-sans);
+  letter-spacing: var(--alp-token-letterSpacing-default);
+}
+
+input::placeholder {
+  color: var(--alp-token-text-placeholder);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--alp-token-focus-default);
+  outline-offset: -2px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--alp-token-bg-default);
+  border: 1px solid var(--alp-token-border-weak);
+  border-radius: var(--alp-token-borderRadius-card);
+  box-shadow: var(--alp-token-shadow-card);
+  padding: 20px;
+  color: var(--alp-token-text-default);
+}
+
+.card:hover {
+  border-color: var(--alp-token-border-defaultHover);
+  box-shadow: var(--alp-token-shadow-cardHover);
+  color: var(--alp-token-text-default);
+}
+
+.control {
+  height: 36px;
+  border: 1px solid var(--alp-token-border-default);
+  border-radius: var(--alp-token-borderRadius-input);
+  background: var(--alp-token-bg-default);
+  font-size: var(--alp-token-fontSize-bodyM);
+  color: var(--alp-token-text-default);
+}
+
+.chip {
+  cursor: pointer;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--alp-token-borderRadius-round);
+  border: 1px solid var(--alp-token-border-default);
+  background: var(--alp-token-bg-default);
+  color: var(--alp-token-text-secondary);
+  font-size: var(--alp-token-fontSize-bodyS);
+  font-weight: var(--alp-token-fontWeight-regular);
+}
+
+.chip[data-active="true"] {
+  background: var(--alp-token-bg-inverted);
+  border-color: var(--alp-token-bg-inverted);
+  color: var(--alp-token-text-onColor);
+  font-weight: var(--alp-token-fontWeight-medium);
+}
+
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
