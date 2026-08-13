@@ -13,9 +13,17 @@ export const DASHBOARD_STATUSES = [
 
 export type DashboardStatus = (typeof DASHBOARD_STATUSES)[number];
 
+/** A supporting doc for a dashboard — a Guru card, a Glean result, anything. */
+export type DocLink = {
+  label: string;
+  source: string;
+  url: string;
+};
+
 export type Dashboard = {
   category: string;
   description: string;
+  docs: DocLink[];
   /** Optional. Not rendered yet — settles "why don't these numbers match". */
   grain?: string;
   /** Optional. Not rendered yet — the date the owner last re-certified. */
@@ -28,7 +36,36 @@ export type Dashboard = {
   url: string;
 };
 
-const DEFAULT_RANGE = "Catalog!A1:J1000";
+const DEFAULT_RANGE = "Catalog!A1:L1000";
+
+/**
+ * Parses the `Supporting sources` cell, which packs several links into one
+ * cell so the sheet stays one row per dashboard:
+ *
+ *   Guru: Metric definitions | https://… ; Glean: How to read this | https://…
+ *
+ * Entries are split on `;`, the label from the URL on `|`, and the source
+ * from the label on the first `:`. Malformed entries are dropped rather than
+ * rendered as a broken pill.
+ */
+export function parseDocs(raw: string): DocLink[] {
+  if (!raw.trim()) {
+    return [];
+  }
+
+  return raw.split(";").flatMap((entry) => {
+    const [head = "", url = ""] = entry.split("|").map((part) => part.trim());
+    const separator = head.indexOf(":");
+    const source = separator > -1 ? head.slice(0, separator).trim() : "Doc";
+    const label = separator > -1 ? head.slice(separator + 1).trim() : head;
+
+    if (!label) {
+      return [];
+    }
+
+    return [{ label, source, url: url || "#" }];
+  });
+}
 
 /**
  * Sample rows so the app renders before the sheet is wired up. Replaced
@@ -45,6 +82,10 @@ const SAMPLE: Dashboard[] = [
     owner: "Maya Chen",
     refresh: "Daily · 6am",
     category: "Paid media",
+    docs: [
+      { label: "Metric definitions", source: "Guru", url: "#" },
+      { label: "How to read this", source: "Glean", url: "#" },
+    ],
   },
   {
     name: "Campaign Performance Deep-Dive",
@@ -56,6 +97,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Maya Chen",
     refresh: "Daily · 6am",
     category: "Paid media",
+    docs: [],
   },
   {
     name: "Web Traffic & Conversion",
@@ -67,6 +109,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Priya Nair",
     refresh: "Real-time",
     category: "Web & SEO",
+    docs: [{ label: "Funnel stage guide", source: "Guru", url: "#" }],
   },
   {
     name: "SEO Keyword Rankings",
@@ -78,6 +121,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Tom Okafor",
     refresh: "Weekly · Mon",
     category: "Web & SEO",
+    docs: [],
   },
   {
     name: "Email & Lifecycle Engagement",
@@ -89,6 +133,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Dana Ruiz",
     refresh: "Daily · 7am",
     category: "Lifecycle",
+    docs: [],
   },
   {
     name: "Lead Funnel & MQL Trends",
@@ -100,6 +145,10 @@ const SAMPLE: Dashboard[] = [
     owner: "Sam Whitfield",
     refresh: "Hourly",
     category: "Pipeline",
+    docs: [
+      { label: "MQL definition", source: "Guru", url: "#" },
+      { label: "Funnel review deck", source: "Glean", url: "#" },
+    ],
   },
   {
     name: "Pipeline Attribution",
@@ -111,6 +160,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Sam Whitfield",
     refresh: "Daily · 6am",
     category: "Pipeline",
+    docs: [{ label: "Attribution model", source: "Glean", url: "#" }],
   },
   {
     name: "Event & Webinar ROI",
@@ -122,6 +172,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Dana Ruiz",
     refresh: "Weekly · Fri",
     category: "Pipeline",
+    docs: [],
   },
   {
     name: "Brand Search & Share of Voice",
@@ -133,6 +184,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Tom Okafor",
     refresh: "Monthly",
     category: "Web & SEO",
+    docs: [],
   },
   {
     name: "Landing Page A/B Tests",
@@ -144,6 +196,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Priya Nair",
     refresh: "Real-time",
     category: "Web & SEO",
+    docs: [],
   },
   {
     name: "Content Engagement",
@@ -155,6 +208,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Priya Nair",
     refresh: "Daily · 8am",
     category: "Web & SEO",
+    docs: [],
   },
   {
     name: "Legacy Spend Tracker",
@@ -166,6 +220,7 @@ const SAMPLE: Dashboard[] = [
     owner: "Maya Chen",
     refresh: "Stopped",
     category: "Paid media",
+    docs: [],
   },
 ];
 
@@ -206,6 +261,9 @@ function toRecords(rows: string[][]): Dashboard[] {
       {
         category: record.category || "Other",
         description: record.description || "",
+        docs: parseDocs(
+          record["supporting sources"] || record["supporting materials"] || "",
+        ),
         grain: record["grain/scope"] || record.grain || undefined,
         lastReviewed: record["last reviewed"] || undefined,
         name,
