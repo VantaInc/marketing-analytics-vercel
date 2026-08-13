@@ -31,10 +31,26 @@ export type AppendGoogleSheetRowsResult = {
   updatedRows?: number;
 };
 
+export type ReadGoogleSheetRowsInput = {
+  credentials: GoogleServiceAccountCredentials;
+  majorDimension?: "ROWS" | "COLUMNS";
+  range: string;
+  spreadsheetId: string;
+};
+
+export type ReadGoogleSheetRowsResult = {
+  range?: string;
+  rows: GoogleSheetRow[];
+  spreadsheetId: string;
+};
+
 export type GoogleSheetsConnector = {
   appendRows: (
     input: Omit<AppendGoogleSheetRowsInput, "credentials">,
   ) => Promise<AppendGoogleSheetRowsResult>;
+  readRows: (
+    input: Omit<ReadGoogleSheetRowsInput, "credentials">,
+  ) => Promise<ReadGoogleSheetRowsResult>;
 };
 
 const sheetsClients = new Map<string, sheets_v4.Sheets>();
@@ -95,6 +111,43 @@ export function createGoogleSheetsConnector(
         credentials,
       });
     },
+    readRows(input) {
+      return readGoogleSheetRows({
+        ...input,
+        credentials,
+      });
+    },
+  };
+}
+
+export async function readGoogleSheetRows({
+  credentials,
+  majorDimension = "ROWS",
+  range,
+  spreadsheetId,
+}: ReadGoogleSheetRowsInput): Promise<ReadGoogleSheetRowsResult> {
+  const normalizedSpreadsheetId = spreadsheetId.trim();
+  const normalizedRange = range.trim();
+
+  if (!normalizedSpreadsheetId) {
+    throw new Error("Google Sheets spreadsheetId is required.");
+  }
+
+  if (!normalizedRange) {
+    throw new Error("Google Sheets range is required.");
+  }
+
+  const sheets = getSheetsClient(credentials);
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: normalizedSpreadsheetId,
+    range: normalizedRange,
+    majorDimension,
+  });
+
+  return {
+    range: response.data.range ?? undefined,
+    rows: (response.data.values ?? []) as GoogleSheetRow[],
+    spreadsheetId: normalizedSpreadsheetId,
   };
 }
 

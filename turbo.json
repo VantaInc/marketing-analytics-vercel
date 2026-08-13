@@ -2,6 +2,8 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "globalPassThroughEnv": [
+    "DASHBOARD_CATALOG_RANGE",
+    "DASHBOARD_CATALOG_SPREADSHEET_ID",
     "EDGE_CONFIG",
     "GOOGLE_SERVICE_ACCOUNT_JSON_B64",
     "INTERNAL_APP_IDEAS_RANGE",
