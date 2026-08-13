@@ -12,21 +12,40 @@ Sheets), so the index deliberately sits outside any one of them.
 One tab, one row per dashboard, header row first. Column names are matched
 case-insensitively, so `Refresh cadence` and `refresh cadence` both work.
 
-| Column            | Required | Drives                                                                     |
-| ----------------- | -------- | -------------------------------------------------------------------------- |
-| `Name`            | Yes      | Card title. Rows without a name are skipped                                |
-| `Description`     | Yes      | Card body — phrase it as the question it answers                           |
-| `URL`             | Yes      | Where the card links                                                       |
-| `Tool`            | Yes      | Tool tag, colored dot, and the tool filter                                 |
-| `Category`        | Yes      | The filter chips                                                           |
-| `Status`          | Yes      | Badge. One of `Certified`, `Working`, `Deprecated` (defaults to `Working`) |
-| `Owner`           | Yes      | Footer avatar and name                                                     |
-| `Refresh cadence` | Yes      | Footer refresh label                                                       |
-| `Last reviewed`   | No       | Parsed, not yet rendered                                                   |
-| `Grain/scope`     | No       | Parsed, not yet rendered                                                   |
+| Column               | Required | Drives                                                                     |
+| -------------------- | -------- | -------------------------------------------------------------------------- |
+| `Name`               | Yes      | Card title. Rows without a name are skipped                                |
+| `Description`        | Yes      | Card body — phrase it as the question it answers                           |
+| `URL`                | Yes      | Where the card links                                                       |
+| `Tool`               | Yes      | Tool tag, colored dot, and the tool filter                                 |
+| `Category`           | Yes      | The filter chips                                                           |
+| `Status`             | Yes      | Badge. One of `Certified`, `Working`, `Deprecated` (defaults to `Working`) |
+| `Owner`              | Yes      | Footer avatar and name                                                     |
+| `Refresh cadence`    | Yes      | Footer refresh label                                                       |
+| `Supporting sources` | No       | Doc pills on the card (see below)                                          |
+| `Last reviewed`      | No       | Parsed, not yet rendered                                                   |
+| `Grain/scope`        | No       | Parsed, not yet rendered                                                   |
 
 Use Data → Data validation to make `Tool`, `Category`, and `Status` dropdowns —
 typos silently split a filter into two.
+
+### Supporting sources
+
+Links to the docs that explain a dashboard — a Guru card defining the metrics,
+a Glean result with the funnel guide. Several links pack into one cell so the
+sheet stays one row per dashboard:
+
+```
+Guru: Metric definitions | https://… ; Glean: How to read this | https://…
+```
+
+Entries split on `;`, label from URL on `|`, source from label on the first `:`.
+The source name picks the pill icon (`Guru` and `Glean` have their own; anything
+else gets a generic document icon) and appears in the pill's tooltip. Entries
+that don't parse are dropped rather than rendered as a broken pill.
+
+Because the range defaults to `Catalog!A1:L1000`, keep the catalog within
+columns A–L or widen `DASHBOARD_CATALOG_RANGE` to match.
 
 ## Setup
 

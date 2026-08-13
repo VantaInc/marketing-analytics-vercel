@@ -166,6 +166,7 @@ input::placeholder {
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -181,6 +182,53 @@ input::placeholder {
   border-color: var(--alp-token-border-defaultHover);
   box-shadow: var(--alp-token-shadow-cardHover);
   color: var(--alp-token-text-default);
+}
+
+/*
+ * The dashboard title is the card's link, stretched over the whole card via
+ * ::after so the card stays clickable. Nesting the doc pills inside a wrapping
+ * <a> would be invalid HTML and unreachable by keyboard, so they sit above the
+ * overlay on their own z-index instead.
+ */
+.card-link {
+  color: inherit;
+  font-size: var(--alp-token-fontSize-bodyL);
+  line-height: var(--alp-token-lineHeight-bodyL);
+  font-weight: var(--alp-token-fontWeight-semiBold);
+}
+
+.card-link:hover {
+  color: inherit;
+}
+
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.doc-pill {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--alp-token-border-weak);
+  border-radius: var(--alp-token-borderRadius-round);
+  background: var(--alp-token-bg-default);
+  font-size: var(--alp-token-fontSize-bodyS);
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-link-default);
+}
+
+.doc-pill:hover {
+  border-color: var(--alp-token-purple-200);
+  background: #f7f0fe;
+  color: var(--alp-token-link-default);
 }
 
 .control {

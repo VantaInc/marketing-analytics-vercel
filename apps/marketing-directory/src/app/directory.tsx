@@ -2,9 +2,12 @@
 
 import { useMemo, useState } from "react";
 import {
+  BookOpen,
   CircleCheck,
   CircleDashed,
   CircleMinus,
+  ExternalLink,
+  FileText,
   RefreshCw,
   Search,
 } from "lucide-react";
@@ -40,6 +43,11 @@ const STATUS: Record<
     color: "var(--alp-token-text-danger)",
     Icon: CircleMinus,
   },
+};
+
+const DOC_ICON: Record<string, typeof BookOpen> = {
+  Guru: BookOpen,
+  Glean: Search,
 };
 
 const ALL = "All";
@@ -338,13 +346,7 @@ export default function Directory({
               const { bg, color, Icon } = STATUS[dashboard.status];
 
               return (
-                <a
-                  key={dashboard.name}
-                  className="card"
-                  href={dashboard.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <div key={dashboard.name} className="card">
                   <div
                     style={{
                       display: "flex",
@@ -405,15 +407,14 @@ export default function Directory({
                       gap: 4,
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: "var(--alp-token-fontSize-bodyL)",
-                        lineHeight: "var(--alp-token-lineHeight-bodyL)",
-                        fontWeight: 600,
-                      }}
+                    <a
+                      className="card-link"
+                      href={dashboard.url}
+                      target="_blank"
+                      rel="noreferrer"
                     >
                       {dashboard.name}
-                    </div>
+                    </a>
                     <div
                       className="truncate-2"
                       style={{
@@ -425,6 +426,40 @@ export default function Directory({
                       {dashboard.description}
                     </div>
                   </div>
+
+                  {dashboard.docs.length > 0 ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      {dashboard.docs.map((doc) => {
+                        const DocIcon = DOC_ICON[doc.source] ?? FileText;
+
+                        return (
+                          <a
+                            key={`${doc.source}:${doc.label}`}
+                            className="doc-pill"
+                            href={doc.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={`Opens in ${doc.source}`}
+                          >
+                            <DocIcon size={10} />
+                            {doc.label}
+                            <ExternalLink
+                              size={8}
+                              style={{ color: "var(--alp-token-icon-weak)" }}
+                            />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+
                   <div
                     style={{
                       display: "flex",
@@ -490,7 +525,7 @@ export default function Directory({
                       {dashboard.refresh}
                     </div>
                   </div>
-                </a>
+                </div>
               );
             })}
           </div>
