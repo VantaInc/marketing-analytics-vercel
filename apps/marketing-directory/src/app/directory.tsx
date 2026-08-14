@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   CircleCheck,
@@ -59,6 +59,64 @@ function initials(owner: string): string {
     .filter(Boolean)
     .slice(0, 2)
     .join("");
+}
+
+/**
+ * Card description, clamped to two lines so the grid stays even, with a toggle
+ * to read the rest in place.
+ *
+ * The toggle only appears when the text actually overflows. That depends on
+ * how wide the card is, so the check re-runs on resize rather than once on
+ * mount — a description that fits at desktop width can clamp on a narrow one.
+ */
+function Description({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+
+    // While expanded there is no clamp to measure against, so leave the last
+    // reading in place — it is what the toggle needs on the way back down.
+    if (!node || expanded) {
+      return;
+    }
+
+    const measure = () => setOverflows(node.scrollHeight > node.clientHeight);
+    const observer = new ResizeObserver(measure);
+
+    observer.observe(node);
+    measure();
+
+    return () => observer.disconnect();
+  }, [expanded, text]);
+
+  return (
+    <>
+      <div
+        ref={ref}
+        className={expanded ? undefined : "truncate-2"}
+        style={{
+          fontSize: "var(--alp-token-fontSize-bodyM)",
+          lineHeight: "var(--alp-token-lineHeight-bodyM)",
+          color: "var(--alp-token-text-secondary)",
+        }}
+      >
+        {text}
+      </div>
+      {overflows || expanded ? (
+        <button
+          className="link-button"
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      ) : null}
+    </>
+  );
 }
 
 export type DirectoryProps = {
@@ -418,16 +476,7 @@ export default function Directory({
                     >
                       {dashboard.name}
                     </a>
-                    <div
-                      className="truncate-2"
-                      style={{
-                        fontSize: "var(--alp-token-fontSize-bodyM)",
-                        lineHeight: "var(--alp-token-lineHeight-bodyM)",
-                        color: "var(--alp-token-text-secondary)",
-                      }}
-                    >
-                      {dashboard.description}
-                    </div>
+                    <Description text={dashboard.description} />
                   </div>
 
                   {dashboard.docs.length > 0 ? (

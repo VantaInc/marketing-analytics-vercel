@@ -15,7 +15,7 @@ case-insensitively, so `Refresh cadence` and `refresh cadence` both work.
 | Column               | Required | Drives                                                                     |
 | -------------------- | -------- | -------------------------------------------------------------------------- |
 | `Name`               | Yes      | Card title. Rows without a name are skipped                                |
-| `Description`        | Yes      | Card body — phrase it as the question it answers                           |
+| `Description`        | Yes      | Card body, clamped to 2 lines with a Show more toggle. Length is not capped |
 | `URL`                | Yes      | Where the card links                                                       |
 | `Tool`               | Yes      | Tool tag, colored dot, and the tool filter                                 |
 | `Category`           | Yes      | The filter chips                                                           |
@@ -39,13 +39,24 @@ sheet stays one row per dashboard:
 Guru: Metric definitions | https://… ; Glean: How to read this | https://…
 ```
 
-Entries split on `;`, label from URL on `|`, source from label on the first `:`.
-The source name picks the pill icon (`Guru` and `Glean` have their own; anything
-else gets a generic document icon) and appears in the pill's tooltip. Entries
-that don't parse are dropped rather than rendered as a broken pill.
+Entries split on `;`. The `|` separates label from URL, and a `Source:` prefix
+names the source. Both are optional — a bare pasted URL works, and its host
+picks the source, so `https://vanta.getguru.com/card/…` on its own becomes a
+Guru pill labelled with the host. An entry is dropped only when it has neither
+a label nor a URL.
 
-Because the range defaults to `Catalog!A1:L1000`, keep the catalog within
-columns A–L or widen `DASHBOARD_CATALOG_RANGE` to match.
+The source name picks the pill icon (`Guru` and `Glean` have their own; anything
+else gets a generic document icon) and appears in the pill's tooltip.
+
+The column header can be any of `Supporting sources`, `Supporting source`,
+`Supporting materials`, `Supporting docs`, `Supporting links`, `Sources`, or
+`Docs`, matched case-insensitively. A header outside that list is not an error —
+the column is simply ignored and no pills render.
+
+The read range defaults to `Catalog!A1:Z1000`. If you set
+`DASHBOARD_CATALOG_RANGE` explicitly, make sure it is wide enough to include
+this column; a column past the end of the range is read as empty with no
+warning.
 
 ## Setup
 
