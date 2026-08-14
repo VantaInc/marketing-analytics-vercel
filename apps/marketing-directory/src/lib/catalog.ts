@@ -36,7 +36,47 @@ export type Dashboard = {
   url: string;
 };
 
-const DEFAULT_RANGE = "Catalog!A1:L1000";
+/**
+ * Wide enough that adding a column to the sheet does not silently drop it.
+ * Parsing is header-driven, so trailing empty columns cost nothing.
+ */
+const DEFAULT_RANGE = "Catalog!A1:Z1000";
+
+/** Header names accepted for the supporting-sources cell, lowercased. */
+const DOC_COLUMNS = [
+  "supporting sources",
+  "supporting source",
+  "supporting materials",
+  "supporting docs",
+  "supporting links",
+  "sources",
+  "docs",
+];
+
+/** Hosts that get their own pill icon, so a bare URL still lands correctly. */
+const KNOWN_SOURCES: [RegExp, string][] = [
+  [/(^|\.)getguru\.com$/, "Guru"],
+  [/(^|\.)glean\.com$/, "Glean"],
+];
+
+function hostOf(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function sourceFromUrl(url: string): string {
+  const host = hostOf(url);
+  const match = host && KNOWN_SOURCES.find(([pattern]) => pattern.test(host));
+
+  return match ? match[1] : "Doc";
+}
+
+function labelFromUrl(url: string): string {
+  return hostOf(url)?.replace(/^www\./, "") ?? "";
+}
 
 /**
  * Parses the `Supporting sources` cell, which packs several links into one
@@ -44,9 +84,12 @@ const DEFAULT_RANGE = "Catalog!A1:L1000";
  *
  *   Guru: Metric definitions | https://… ; Glean: How to read this | https://…
  *
- * Entries are split on `;`, the label from the URL on `|`, and the source
- * from the label on the first `:`. Malformed entries are dropped rather than
- * rendered as a broken pill.
+ * Entries are split on `;`. The URL is whatever follows `|`, or the first URL
+ * found inline when the `|` is missing — so a bare pasted link still works.
+ * What remains is the label, and a leading `Source:` prefix overrides the
+ * source otherwise inferred from the URL's host.
+ *
+ * Only entries with neither a label nor a URL are dropped.
  */
 export function parseDocs(raw: string): DocLink[] {
   if (!raw.trim()) {
@@ -54,16 +97,36 @@ export function parseDocs(raw: string): DocLink[] {
   }
 
   return raw.split(";").flatMap((entry) => {
-    const [head = "", url = ""] = entry.split("|").map((part) => part.trim());
-    const separator = head.indexOf(":");
-    const source = separator > -1 ? head.slice(0, separator).trim() : "Doc";
-    const label = separator > -1 ? head.slice(separator + 1).trim() : head;
+    const trimmed = entry.trim();
+
+    if (!trimmed) {
+      return [];
+    }
+
+    const pipe = trimmed.indexOf("|");
+    const inlineUrl = trimmed.match(/https?:\/\/\S+/)?.[0] ?? "";
+    const url = pipe > -1 ? trimmed.slice(pipe + 1).trim() : inlineUrl;
+
+    // Whatever is not the URL is the label. Strip any separator the URL left
+    // behind so "Guru: definitions —" does not keep its dash.
+    const head = (
+      pipe > -1 ? trimmed.slice(0, pipe) : trimmed.replace(inlineUrl, "")
+    )
+      .replace(/[|:\-–—,\s]+$/, "")
+      .trim();
+
+    // A colon only marks the source when it is not the one in "https://".
+    const separator = head.search(/:(?!\/\/)/);
+    const prefix = separator > -1 ? head.slice(0, separator).trim() : "";
+    const rest = separator > -1 ? head.slice(separator + 1).trim() : head;
+
+    const label = rest || labelFromUrl(url);
 
     if (!label) {
       return [];
     }
 
-    return [{ label, source, url: url || "#" }];
+    return [{ label, source: prefix || sourceFromUrl(url), url: url || "#" }];
   });
 }
 
@@ -262,7 +325,7 @@ function toRecords(rows: string[][]): Dashboard[] {
         category: record.category || "Other",
         description: record.description || "",
         docs: parseDocs(
-          record["supporting sources"] || record["supporting materials"] || "",
+          DOC_COLUMNS.map((column) => record[column]).find(Boolean) ?? "",
         ),
         grain: record["grain/scope"] || record.grain || undefined,
         lastReviewed: record["last reviewed"] || undefined,

@@ -265,3 +265,24 @@ input::placeholder {
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+
+/*
+ * Sits above the .card-link::after overlay, the same way .doc-pill does, so
+ * clicking it toggles the description instead of opening the dashboard.
+ */
+.link-button {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: var(--alp-token-fontSize-bodyS);
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-link-default);
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
