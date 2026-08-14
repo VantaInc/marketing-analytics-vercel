@@ -286,3 +286,25 @@ input::placeholder {
 .link-button:hover {
   text-decoration: underline;
 }
+
+/*
+ * Screenshot thumbnail in the expanded card. A fixed 16:9 box keeps every card
+ * the same shape whatever the source image is, and reserves the space before
+ * the image loads so expanding does not make the grid jump. Anything that is
+ * not 16:9 is cropped from the top, where a dashboard's title and headline
+ * numbers usually are. The card already links to the real dashboard, so this
+ * only has to be recognisable, not complete.
+ */
+.screenshot {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 200px;
+  margin: 4px 0 2px;
+  object-fit: cover;
+  object-position: top center;
+  border: 1px solid var(--alp-token-border-weak);
+  border-radius: var(--alp-token-borderRadius-card);
+  background: var(--alp-token-bg-neutralWeak);
+}
