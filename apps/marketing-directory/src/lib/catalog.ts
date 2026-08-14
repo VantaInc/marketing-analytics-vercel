@@ -70,10 +70,17 @@ const SCREENSHOT_COLUMNS = [
  * Ways Drive spells a file id across its share links:
  *   /file/d/<id>/view?usp=sharing   the Share button's default
  *   open?id=<id>                    older share links
- *   uc?id=<id>                      already direct; matched so this is
- *                                   idempotent rather than doubled up
+ *   uc?id=<id>                      the old embed form, now unreliable
  */
 const DRIVE_FILE_ID = [/\/file\/d\/([\w-]+)/, /[?&]id=([\w-]+)/, /\/d\/([\w-]+)/];
+
+/**
+ * The host Drive actually serves image bytes from. `drive.google.com/uc?id=`
+ * used to work for this and no longer does dependably — for many files it
+ * answers with a virus-scan interstitial or a download prompt instead of the
+ * image, so an `<img>` pointed at it fails even when permissions are correct.
+ */
+const DRIVE_IMAGE_HOST = "https://lh3.googleusercontent.com/d/";
 
 /** Hosts that get their own pill icon, so a bare URL still lands correctly. */
 const KNOWN_SOURCES: [RegExp, string][] = [
@@ -102,17 +109,19 @@ function labelFromUrl(url: string): string {
 
 /**
  * A Drive share link points at Drive's viewer page, which serves HTML, so an
- * `<img>` pointed at it renders nothing. Rewrite those to the direct
- * `uc?id=<id>` form so owners can paste the link straight off the Share button.
+ * `<img>` pointed at it renders nothing. Rewrite those to a URL that returns
+ * the image itself, so owners can paste the link straight off the Share button.
  *
- * Non-Drive URLs pass through untouched, so a link to any other image host
- * still works. A Drive URL with no recognisable file id — a folder link, say —
- * is also left alone rather than mangled into something confidently wrong.
+ * Already-direct `lh3.googleusercontent.com` links pass through, as does any
+ * non-Drive URL, so a link to another image host still works. A Drive URL with
+ * no recognisable file id — a folder link, say — is left alone rather than
+ * mangled into something confidently wrong.
  *
  * The file still has to be readable by whoever opens the directory. Drive
- * enforces its own permissions on this URL: a file that is not shared widely
- * enough returns a sign-in page instead of the image, and the card drops the
- * screenshot rather than showing a broken frame.
+ * enforces its own permissions here, against the viewer rather than the service
+ * account that reads the sheet: a file that is not shared widely enough answers
+ * with a sign-in page instead of the image, and the card drops the screenshot
+ * rather than showing a broken frame.
  */
 export function toDirectImageUrl(raw: string): string {
   const url = raw.trim();
@@ -125,7 +134,7 @@ export function toDirectImageUrl(raw: string): string {
     Boolean,
   );
 
-  return id ? `https://drive.google.com/uc?id=${id}` : url;
+  return id ? `${DRIVE_IMAGE_HOST}${id}` : url;
 }
 
 /**
