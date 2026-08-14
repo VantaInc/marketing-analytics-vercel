@@ -67,13 +67,19 @@ renders nothing — the app rewrites it to the direct form:
 
 ```
 https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-  ->  https://drive.google.com/uc?id=FILE_ID
+  ->  https://lh3.googleusercontent.com/d/FILE_ID
 ```
 
-`open?id=` links convert too, an already-direct `uc?id=` link is left as it is,
-and any non-Drive image URL passes through untouched, so a link to another host
-works without special handling. A Drive URL with no file id in it — a folder
-link — is left alone rather than mangled.
+`open?id=` and `uc?id=` links convert the same way. Already-direct
+`lh3.googleusercontent.com` links pass through, as does any non-Drive image URL,
+so a link to another host works without special handling. A Drive URL with no
+file id in it — a folder link — is left alone rather than mangled.
+
+**Why not `drive.google.com/uc?id=`:** that was the standard embed URL and no
+longer works dependably. For many files Drive answers it with a virus-scan
+interstitial or a download prompt rather than image bytes, so an `<img>` pointed
+at it fails even when permissions are correct. `lh3.googleusercontent.com` is
+where Drive actually serves images from.
 
 Accepted headers: `Screenshot URL`, `Screenshot`, `Screenshot link`, `Preview`,
 `Preview URL`, `Image`, `Image URL`.
@@ -86,15 +92,28 @@ enough returns a sign-in page instead of image bytes; the card notices and drops
 the screenshot rather than showing a broken frame, so a missing thumbnail with
 everything else correct almost always means sharing.
 
-If a screenshot still refuses to load with sharing set correctly, Drive is
-throttling or interstitialing that file. `https://lh3.googleusercontent.com/d/FILE_ID`
-serves the same image and is more reliable for embedding; it can be pasted in
-directly, since non-Drive hosts are passed through.
-
 The thumbnail renders in a fixed 16:9 box at the card's width, capped at 200px
 tall, cropped from the top where a dashboard's title and headline numbers
-usually sit. Source images are not resized on upload, so keep them reasonable —
-a 4MB PNG still transfers at full size before being scaled down for display.
+usually sit.
+
+Nothing is resized on the way in, so a 4MB PNG transfers at full size before
+being scaled down for display. `lh3.googleusercontent.com` can do the resizing
+instead: append `=w1000` to a direct link and it serves a 1000px-wide copy.
+Paste that form in yourself if a screenshot is heavy — direct links pass through
+untouched, so the suffix survives.
+
+### Screenshots and access
+
+Making screenshot files link-shared puts the images outside the directory's own
+protection. The page itself sits behind Vercel Authentication and Okta, but an
+`Anyone with the link` image is readable by anyone who has the URL, with no
+sign-in. For screenshots of real dashboards showing real numbers, treat the
+image URLs as about as private as the link itself.
+
+If that is not an acceptable trade, the app could instead proxy the images
+server-side through the service account that already reads the sheet, which
+would let the files stay restricted. That is a route handler and a Drive scope,
+not a config change — see the note in the deploy checklist.
 
 ## Setup
 
