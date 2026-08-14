@@ -62,16 +62,30 @@ function initials(owner: string): string {
 }
 
 /**
- * Card description, clamped to two lines so the grid stays even, with a toggle
- * to read the rest in place.
+ * Card body: the description, clamped to two lines so the grid stays even,
+ * and the screenshot. One toggle reveals both.
  *
- * The toggle only appears when the text actually overflows. That depends on
- * how wide the card is, so the check re-runs on resize rather than once on
- * mount — a description that fits at desktop width can clamp on a narrow one.
+ * The toggle appears when the text overflows or there is a screenshot to show.
+ * Overflow depends on how wide the card is, so that check re-runs on resize
+ * rather than once on mount — a description that fits at desktop width can
+ * clamp on a narrow one.
+ *
+ * A screenshot that fails to load removes itself rather than leaving a broken
+ * frame in the card. Drive serves a sign-in page instead of image bytes when a
+ * file is not shared widely enough, which is the usual way this goes wrong.
  */
-function Description({ text }: { text: string }) {
+function CardBody({
+  description,
+  name,
+  screenshot,
+}: {
+  description: string;
+  name: string;
+  screenshot?: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
+  const [imageBroken, setImageBroken] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -90,7 +104,9 @@ function Description({ text }: { text: string }) {
     measure();
 
     return () => observer.disconnect();
-  }, [expanded, text]);
+  }, [description, expanded]);
+
+  const hasScreenshot = Boolean(screenshot) && !imageBroken;
 
   return (
     <>
@@ -103,9 +119,20 @@ function Description({ text }: { text: string }) {
           color: "var(--alp-token-text-secondary)",
         }}
       >
-        {text}
+        {description}
       </div>
-      {overflows || expanded ? (
+      {expanded && hasScreenshot ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          className="screenshot"
+          src={screenshot}
+          alt={`Screenshot of ${name}`}
+          loading="lazy"
+          decoding="async"
+          onError={() => setImageBroken(true)}
+        />
+      ) : null}
+      {overflows || hasScreenshot || expanded ? (
         <button
           className="link-button"
           type="button"
@@ -476,7 +503,11 @@ export default function Directory({
                     >
                       {dashboard.name}
                     </a>
-                    <Description text={dashboard.description} />
+                    <CardBody
+                      description={dashboard.description}
+                      name={dashboard.name}
+                      screenshot={dashboard.screenshot}
+                    />
                   </div>
 
                   {dashboard.docs.length > 0 ? (

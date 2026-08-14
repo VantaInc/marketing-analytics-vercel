@@ -23,6 +23,7 @@ case-insensitively, so `Refresh cadence` and `refresh cadence` both work.
 | `Owner`              | Yes      | Footer avatar and name                                                     |
 | `Refresh cadence`    | Yes      | Footer refresh label                                                       |
 | `Supporting sources` | No       | Doc pills on the card (see below)                                          |
+| `Screenshot URL`     | No       | Thumbnail in the card's expanded state (see below)                         |
 | `Last reviewed`      | No       | Parsed, not yet rendered                                                   |
 | `Grain/scope`        | No       | Parsed, not yet rendered                                                   |
 
@@ -57,6 +58,43 @@ The read range defaults to `Catalog!A1:Z1000`. If you set
 `DASHBOARD_CATALOG_RANGE` explicitly, make sure it is wide enough to include
 this column; a column past the end of the range is read as empty with no
 warning.
+
+### Screenshot URL
+
+Paste the Google Drive share link straight from the Share button. Drive's share
+link points at its viewer page, which serves HTML, so an `<img>` aimed at it
+renders nothing — the app rewrites it to the direct form:
+
+```
+https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  ->  https://drive.google.com/uc?id=FILE_ID
+```
+
+`open?id=` links convert too, an already-direct `uc?id=` link is left as it is,
+and any non-Drive image URL passes through untouched, so a link to another host
+works without special handling. A Drive URL with no file id in it — a folder
+link — is left alone rather than mangled.
+
+Accepted headers: `Screenshot URL`, `Screenshot`, `Screenshot link`, `Preview`,
+`Preview URL`, `Image`, `Image URL`.
+
+**Share the file, not just the folder.** Drive enforces its own permissions on
+that URL, and it is checked against whoever is looking at the directory, not the
+service account that reads the sheet. Set the file — or the folder it inherits
+from — to **Anyone with the link · Viewer**. A file that is not shared widely
+enough returns a sign-in page instead of image bytes; the card notices and drops
+the screenshot rather than showing a broken frame, so a missing thumbnail with
+everything else correct almost always means sharing.
+
+If a screenshot still refuses to load with sharing set correctly, Drive is
+throttling or interstitialing that file. `https://lh3.googleusercontent.com/d/FILE_ID`
+serves the same image and is more reliable for embedding; it can be pasted in
+directly, since non-Drive hosts are passed through.
+
+The thumbnail renders in a fixed 16:9 box at the card's width, capped at 200px
+tall, cropped from the top where a dashboard's title and headline numbers
+usually sit. Source images are not resized on upload, so keep them reasonable —
+a 4MB PNG still transfers at full size before being scaled down for display.
 
 ## Setup
 

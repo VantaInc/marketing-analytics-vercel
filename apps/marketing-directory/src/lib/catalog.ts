@@ -31,6 +31,8 @@ export type Dashboard = {
   name: string;
   owner: string;
   refresh: string;
+  /** Optional. Direct image URL, shown in the card's expanded state. */
+  screenshot?: string;
   status: DashboardStatus;
   tool: string;
   url: string;
@@ -52,6 +54,26 @@ const DOC_COLUMNS = [
   "sources",
   "docs",
 ];
+
+/** Header names accepted for the screenshot cell, lowercased. */
+const SCREENSHOT_COLUMNS = [
+  "screenshot url",
+  "screenshot",
+  "screenshot link",
+  "preview",
+  "preview url",
+  "image",
+  "image url",
+];
+
+/**
+ * Ways Drive spells a file id across its share links:
+ *   /file/d/<id>/view?usp=sharing   the Share button's default
+ *   open?id=<id>                    older share links
+ *   uc?id=<id>                      already direct; matched so this is
+ *                                   idempotent rather than doubled up
+ */
+const DRIVE_FILE_ID = [/\/file\/d\/([\w-]+)/, /[?&]id=([\w-]+)/, /\/d\/([\w-]+)/];
 
 /** Hosts that get their own pill icon, so a bare URL still lands correctly. */
 const KNOWN_SOURCES: [RegExp, string][] = [
@@ -76,6 +98,34 @@ function sourceFromUrl(url: string): string {
 
 function labelFromUrl(url: string): string {
   return hostOf(url)?.replace(/^www\./, "") ?? "";
+}
+
+/**
+ * A Drive share link points at Drive's viewer page, which serves HTML, so an
+ * `<img>` pointed at it renders nothing. Rewrite those to the direct
+ * `uc?id=<id>` form so owners can paste the link straight off the Share button.
+ *
+ * Non-Drive URLs pass through untouched, so a link to any other image host
+ * still works. A Drive URL with no recognisable file id — a folder link, say —
+ * is also left alone rather than mangled into something confidently wrong.
+ *
+ * The file still has to be readable by whoever opens the directory. Drive
+ * enforces its own permissions on this URL: a file that is not shared widely
+ * enough returns a sign-in page instead of the image, and the card drops the
+ * screenshot rather than showing a broken frame.
+ */
+export function toDirectImageUrl(raw: string): string {
+  const url = raw.trim();
+
+  if (!url || hostOf(url) !== "drive.google.com") {
+    return url;
+  }
+
+  const id = DRIVE_FILE_ID.map((pattern) => url.match(pattern)?.[1]).find(
+    Boolean,
+  );
+
+  return id ? `https://drive.google.com/uc?id=${id}` : url;
 }
 
 /**
@@ -332,6 +382,11 @@ function toRecords(rows: string[][]): Dashboard[] {
         name,
         owner: record.owner || "",
         refresh: record["refresh cadence"] || record.refresh || "",
+        screenshot:
+          toDirectImageUrl(
+            SCREENSHOT_COLUMNS.map((column) => record[column]).find(Boolean) ??
+              "",
+          ) || undefined,
         status: toStatus(record.status ?? ""),
         tool: record.tool || "Other",
         url: record.url || "#",
