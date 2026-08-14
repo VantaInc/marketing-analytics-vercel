@@ -130,6 +130,9 @@ importers:
       '@vanta/google-sheets':
         specifier: workspace:*
         version: link:../../packages/google-sheets
+      '@vanta/snowflake':
+        specifier: workspace:*
+        version: link:../../packages/snowflake
       '@vanta/ui':
         specifier: workspace:*
         version: link:../../packages/ui

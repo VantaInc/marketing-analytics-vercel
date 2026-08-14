@@ -72,7 +72,11 @@ const SCREENSHOT_COLUMNS = [
  *   open?id=<id>                    older share links
  *   uc?id=<id>                      the old embed form, now unreliable
  */
-const DRIVE_FILE_ID = [/\/file\/d\/([\w-]+)/, /[?&]id=([\w-]+)/, /\/d\/([\w-]+)/];
+const DRIVE_FILE_ID = [
+  /\/file\/d\/([\w-]+)/,
+  /[?&]id=([\w-]+)/,
+  /\/d\/([\w-]+)/,
+];
 
 /**
  * The host Drive actually serves image bytes from. `drive.google.com/uc?id=`
