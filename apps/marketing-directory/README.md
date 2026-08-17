@@ -268,6 +268,38 @@ the underlying model stays intact and the adjustment stays visible on the page.
 live table** — if the page shows dashes where values should be, check them
 first.
 
+### When the Snowflake grant lands
+
+The page tells you what is wrong rather than rendering a silent grid of dashes.
+Load `/offline-conversion` and read the table body:
+
+| What you see                                | What it means                                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Values                                      | Done.                                                                                                         |
+| `Couldn't read <table>` + a Snowflake error | Connection or permission problem. The error is verbatim.                                                      |
+| `readable, but produced no usable values`   | The read worked. The message says whether the table was empty, the columns differ, or every row was filtered. |
+| `Snowflake is not configured`               | The `SNOWFLAKE_*` variables are not reaching the deployment.                                                  |
+
+Every failure state also prints the role, warehouse, and database the app
+connected with. **Check the role first.** A grant made to a role other than the
+one in `SNOWFLAKE_ROLE` produces an error identical to the table not existing,
+and if `SNOWFLAKE_ROLE` is unset the connection silently uses the user's default
+role — which is rarely the role anyone granted access to.
+
+To confirm the grant landed on the right role, run this **as the service user**:
+
+```sql
+SHOW GRANTS TO ROLE <the value of SNOWFLAKE_ROLE>;
+SHOW TABLES LIKE 'SEED_OFFLINE_CONVERSION_VALUES' IN DATABASE VANTA;
+```
+
+The role needs `USAGE` on the database **and** the schema, plus `SELECT` on the
+table. Missing `USAGE` on the schema is the most common cause of this error when
+the table grant itself looks correct.
+
+If the columns turn out to differ from the table above, the page will name the
+ones it actually found; change the parsing in `src/lib/offline-conversion.ts`.
+
 ### A note on what is not in this file
 
 This repository is public. The page deliberately carries no conversion rates or

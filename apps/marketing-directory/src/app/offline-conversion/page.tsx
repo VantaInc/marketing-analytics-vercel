@@ -6,6 +6,7 @@ import {
   SEGMENTS,
   getConversionValues,
 } from "@/lib/offline-conversion";
+import { getSnowflakeContext } from "@/lib/snowflake";
 import { SiteHeader } from "../site-header";
 
 /**
@@ -35,9 +36,17 @@ const usd = new Intl.NumberFormat("en-US", {
 });
 
 export default async function Page() {
-  const { byEventAndSegment, error, rows } = await getConversionValues();
+  const { byEventAndSegment, diagnostic, error, rows } =
+    await getConversionValues();
   const configured = rows !== null;
   const growthS0 = byEventAndSegment["s0|Growth"];
+  const context = getSnowflakeContext();
+
+  /** Shown under a failure so the connection's identity is never a guess. */
+  const connectionNote =
+    `Connected as role ${context.role}, ` +
+    `warehouse ${context.warehouse}, database ${context.database}. ` +
+    `A grant made to a different role looks exactly like the table not existing.`;
 
   return (
     <div
@@ -145,7 +154,43 @@ export default async function Page() {
                         className="muted"
                         style={{ fontSize: "var(--alp-token-fontSize-bodyS)" }}
                       >
-                        No values are shown rather than stale or partial ones.
+                        No values are shown rather than stale or partial ones.{" "}
+                        {connectionNote}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : diagnostic !== null ? (
+                <tr>
+                  <td
+                    colSpan={SEGMENTS.length + 1}
+                    style={{ textAlign: "left", padding: 28, fontWeight: 400 }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ color: "var(--alp-token-text-danger)" }}>
+                        {CONVERSION_TABLE} is readable, but produced no usable
+                        values.
+                      </span>
+                      <code
+                        style={{
+                          fontSize: "var(--alp-token-fontSize-bodyS)",
+                          color: "var(--alp-token-text-secondary)",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {diagnostic}
+                      </code>
+                      <span
+                        className="muted"
+                        style={{ fontSize: "var(--alp-token-fontSize-bodyS)" }}
+                      >
+                        {connectionNote}
                       </span>
                     </div>
                   </td>

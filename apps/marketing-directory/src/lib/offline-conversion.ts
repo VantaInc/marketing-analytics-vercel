@@ -38,11 +38,44 @@ export type ConversionValue = {
 export type ConversionValues = {
   /** Keyed `eventName|segment`, both as they appear in SEGMENTS/FUNNEL_EVENTS. */
   byEventAndSegment: Record<string, ConversionValue>;
+  /**
+   * Set when the query succeeded but produced nothing usable. Explains which
+   * of the two very different causes applies — an empty table, or rows whose
+   * columns are not the ones this app reads.
+   */
+  diagnostic: string | null;
   /** Set when the query failed. The page shows it instead of the values. */
   error: string | null;
   /** Null when unconfigured or the query failed — never a misleading empty set. */
   rows: ConversionValue[] | null;
 };
+
+/** Columns a row must have for this page to read it at all. */
+const REQUIRED_COLUMNS = ["event_name", "base_value_usd"];
+
+/**
+ * Explains an empty result. Without this, a schema mismatch and an empty table
+ * both render as a grid of dashes, and the only way to tell them apart is to
+ * open Snowflake and guess.
+ */
+function diagnose(raw: RawRow[], parsed: ConversionValue[]): string | null {
+  if (parsed.length > 0) {
+    return null;
+  }
+
+  if (raw.length === 0) {
+    return "The table is readable but returned no rows.";
+  }
+
+  const found = Object.keys(lowerKeys(raw[0] ?? {}));
+  const missing = REQUIRED_COLUMNS.filter((column) => !found.includes(column));
+
+  if (missing.length > 0) {
+    return `Read ${raw.length} row(s), but none had the columns this page reads. Missing: ${missing.join(", ")}. Columns present: ${found.join(", ")}.`;
+  }
+
+  return `Read ${raw.length} row(s), but every one was filtered out — check IS_ACTIVE (an explicit "false" excludes a row) and GEO (only "*" rows are shown).`;
+}
 
 /**
  * `SELECT *` rather than named columns because the seed's exact schema is not
@@ -144,7 +177,7 @@ export function toConversionValues(rows: RawRow[]): ConversionValue[] {
  */
 export async function getConversionValues(): Promise<ConversionValues> {
   if (!isSnowflakeConfigured()) {
-    return { byEventAndSegment: {}, error: null, rows: null };
+    return { byEventAndSegment: {}, diagnostic: null, error: null, rows: null };
   }
 
   let raw: RawRow[];
@@ -157,6 +190,7 @@ export async function getConversionValues(): Promise<ConversionValues> {
 
     return {
       byEventAndSegment: {},
+      diagnostic: null,
       error: cause instanceof Error ? cause.message : String(cause),
       rows: null,
     };
@@ -172,5 +206,10 @@ export async function getConversionValues(): Promise<ConversionValues> {
     byEventAndSegment[`${row.eventName}|${row.segment}`] = row;
   }
 
-  return { byEventAndSegment, error: null, rows };
+  return {
+    byEventAndSegment,
+    diagnostic: diagnose(raw, rows),
+    error: null,
+    rows,
+  };
 }
