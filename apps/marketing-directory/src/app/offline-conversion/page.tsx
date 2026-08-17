@@ -143,12 +143,34 @@ export default async function Page() {
                       const value =
                         byEventAndSegment[`${event.key}|${segment}`];
 
+                      if (value === undefined) {
+                        return (
+                          <td className="muted" key={segment}>
+                            —
+                          </td>
+                        );
+                      }
+
                       return (
                         <td
                           className={isDefault ? "muted" : undefined}
                           key={segment}
                         >
-                          {value === undefined ? "—" : usd.format(value)}
+                          <span className="cell-stack">
+                            {usd.format(value.sentUsd)}
+                            <span
+                              className={
+                                value.multiplier === 1
+                                  ? "mult"
+                                  : "mult override"
+                              }
+                              title={`Sent value = base ${usd.format(
+                                value.baseUsd,
+                              )} × multiplier ${value.multiplier}`}
+                            >
+                              × {value.multiplier}
+                            </span>
+                          </span>
                         </td>
                       );
                     })}
@@ -176,9 +198,11 @@ export default async function Page() {
               the ad platform that conversion was worth{" "}
               {growthS0 === undefined
                 ? "the S0 Growth value"
-                : usd.format(growthS0)}
+                : usd.format(growthS0.sentUsd)}
               . The Default column applies when segment is unknown at conversion
-              time.
+              time. Sent value = base × multiplier — change the multiplier, not
+              the base, for temporary boosts or tests, so the underlying model
+              stays intact.
             </div>
           </div>
           <div className="card callout">
@@ -281,7 +305,7 @@ export default async function Page() {
             Maintained by Marketing Analytics · Values reviewed with each
             segment re-baseline
           </div>
-          <div>All geos (*) · Multiplier 1.0 · Active rows only</div>
+          <div>All geos (*) · Multipliers applied · Active rows only</div>
         </div>
       </main>
     </div>

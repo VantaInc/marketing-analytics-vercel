@@ -421,3 +421,36 @@ input::placeholder {
   font-size: var(--alp-token-fontSize-bodyM);
   line-height: var(--alp-token-lineHeight-bodyM);
 }
+
+/*
+ * Value cells stack the sent amount over its multiplier. The pill is styled
+ * differently when the multiplier is not 1, so a live boost or test is visible
+ * at a glance rather than hidden inside an unremarkable number.
+ */
+.cell-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+}
+
+.mult {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  margin-top: 3px;
+  border-radius: var(--alp-token-borderRadius-round);
+  background: var(--alp-token-bg-neutralWeak);
+  border: 1px solid var(--alp-token-border-weak);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-text-secondary);
+}
+
+.mult.override {
+  background: #f7f0fe;
+  border-color: var(--alp-token-purple-200);
+  color: var(--alp-token-purple-1100);
+}

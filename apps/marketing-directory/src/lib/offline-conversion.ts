@@ -25,14 +25,19 @@ export const SEGMENTS = [
 ] as const;
 
 export type ConversionValue = {
+  /** The modelled value before any multiplier. */
+  baseUsd: number;
   eventName: string;
+  /** 1 unless a temporary boost or test is in effect. */
+  multiplier: number;
   segment: string;
-  valueUsd: number;
+  /** What actually goes to the ad platform: base × multiplier, rounded. */
+  sentUsd: number;
 };
 
 export type ConversionValues = {
   /** Keyed `eventName|segment`, both as they appear in SEGMENTS/FUNNEL_EVENTS. */
-  byEventAndSegment: Record<string, number>;
+  byEventAndSegment: Record<string, ConversionValue>;
   /** Null when Snowflake is not configured — the page renders empty, not wrong. */
   rows: ConversionValue[] | null;
 };
@@ -66,22 +71,25 @@ function isActive(row: RawRow): boolean {
 }
 
 /**
- * The page shows the all-geo, unmultiplied baseline. Rows carrying a specific
- * geo or a multiplier other than 1 are regional overrides layered on top of it,
- * so including them here would double-count. Both filters no-op when the column
- * is absent.
+ * The page shows the all-geo rows. Rows carrying a specific geo are regional
+ * overrides layered on top, so including them here would double-count. No-ops
+ * when the column is absent.
+ *
+ * The multiplier is deliberately NOT filtered on: it is applied, not excluded.
+ * A multiplier other than 1 is a live temporary boost or test, and hiding those
+ * rows would show a number the ad platform is not actually receiving.
  */
-function isBaseline(row: RawRow): boolean {
+function isAllGeo(row: RawRow): boolean {
   const geo = row.geo;
-  const multiplier = row.multiplier;
-  const geoOk = geo === undefined || geo === null || String(geo).trim() === "*";
-  const multiplierOk =
-    multiplier === undefined ||
-    multiplier === null ||
-    Number(multiplier) === 1 ||
-    Number.isNaN(Number(multiplier));
 
-  return geoOk && multiplierOk;
+  return geo === undefined || geo === null || String(geo).trim() === "*";
+}
+
+/** Absent, unparseable, or non-positive multipliers fall back to 1. */
+function toMultiplier(value: unknown): number {
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
 function toNumber(value: unknown): number | null {
@@ -98,22 +106,26 @@ export function toConversionValues(rows: RawRow[]): ConversionValue[] {
   return rows
     .map(lowerKeys)
     .filter(isActive)
-    .filter(isBaseline)
+    .filter(isAllGeo)
     .flatMap((row) => {
       const eventName = String(row.event_name ?? "")
         .trim()
         .toLowerCase();
-      const valueUsd = toNumber(row.base_value_usd);
+      const baseUsd = toNumber(row.base_value_usd);
 
-      if (!eventName || valueUsd === null) {
+      if (!eventName || baseUsd === null) {
         return [];
       }
 
+      const multiplier = toMultiplier(row.multiplier);
+
       return [
         {
+          baseUsd,
           eventName,
+          multiplier,
           segment: String(row.segment ?? "*").trim() || "*",
-          valueUsd,
+          sentUsd: Math.round(baseUsd * multiplier),
         },
       ];
     });
@@ -131,10 +143,13 @@ export async function getConversionValues(): Promise<ConversionValues> {
 
   const raw = await getSnowflakeConnector().query<RawRow>(QUERY);
   const rows = toConversionValues(raw);
-  const byEventAndSegment: Record<string, number> = {};
+  const byEventAndSegment: Record<string, ConversionValue> = {};
 
+  // One all-geo row per event/segment is expected. If the seed ever carries
+  // two, the later one wins — matching the prototype rather than silently
+  // summing them.
   for (const row of rows) {
-    byEventAndSegment[`${row.eventName}|${row.segment}`] = row.valueUsd;
+    byEventAndSegment[`${row.eventName}|${row.segment}`] = row;
   }
 
   return { byEventAndSegment, rows };
