@@ -237,16 +237,27 @@ The query is `SELECT *`, filtered in TypeScript
 | ---------------- | ----------------------------------------------------------------- |
 | `EVENT_NAME`     | Row matching — `MQL`, `S0`, `S2`, `CW`                            |
 | `SEGMENT`        | Column matching — `Early Stage`, `Growth`, `Commercial Plus`, `*` |
-| `BASE_VALUE_USD` | The displayed value                                               |
+| `BASE_VALUE_USD` | The modelled value, before any multiplier                         |
 | `IS_ACTIVE`      | Only an explicit `false` excludes a row                           |
 | `GEO`            | Optional. Only `*` rows are shown                                 |
-| `MULTIPLIER`     | Optional. Only `1` rows are shown                                 |
+| `MULTIPLIER`     | Optional. Applied, not filtered. Defaults to `1`                  |
 
-`GEO` and `MULTIPLIER` filter to the all-geo, unmultiplied baseline so regional
-overrides layered on top are not double-counted. Both no-op if the column does
-not exist. **These column names were inferred from the prototype, not verified
-against the live table** — if the page shows dashes where values should be,
-check them first.
+`GEO` filters to the all-geo rows, so regional overrides layered on top are not
+double-counted. It no-ops if the column does not exist.
+
+`MULTIPLIER` is deliberately **applied rather than filtered on**. Each cell
+shows the sent value (`base × multiplier`) with the multiplier on a pill
+beneath, styled differently when it is not `1`. Hiding multiplied rows would
+display a number the ad platform is not actually receiving. Absent,
+unparseable, or non-positive multipliers fall back to `1`, so a blank cell in
+the seed cannot zero out a bid.
+
+To run a temporary boost or test, change the multiplier rather than the base:
+the underlying model stays intact and the adjustment stays visible on the page.
+
+**These column names were inferred from the prototype, not verified against the
+live table** — if the page shows dashes where values should be, check them
+first.
 
 ### A note on what is not in this file
 
