@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import type { Dashboard, DashboardStatus } from "@/lib/catalog";
+import { SiteHeader } from "./site-header";
 
 const TOOL_DOT: Record<string, string> = {
   Looker: "var(--alp-token-dataViz-category4)",
@@ -197,61 +198,7 @@ export default function Directory({
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <header
-        style={{
-          background: "var(--alp-token-bg-default)",
-          borderBottom: "1px solid var(--alp-token-border-weak)",
-          padding: "0 32px",
-          height: 56,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/vanta-wordmark.svg"
-            alt="Vanta"
-            style={{ height: 18, display: "block" }}
-          />
-          <div
-            style={{
-              width: 1,
-              height: 20,
-              background: "var(--alp-token-border-default)",
-            }}
-          />
-          <div
-            style={{
-              fontSize: "var(--alp-token-fontSize-bodyM)",
-              fontWeight: 500,
-              color: "var(--alp-token-text-secondary)",
-            }}
-          >
-            Marketing Reports
-          </div>
-        </div>
-        {viewerInitials ? (
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 999,
-              background: "var(--alp-token-purple-200)",
-              color: "var(--alp-token-purple-1100)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 11,
-              fontWeight: 600,
-            }}
-          >
-            {viewerInitials}
-          </div>
-        ) : null}
-      </header>
+      <SiteHeader current="/" viewerInitials={viewerInitials} />
 
       <main
         style={{

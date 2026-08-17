@@ -66,6 +66,7 @@
   --alp-token-green-1000: #047023;
   --alp-token-red-100: #fef5f5;
   --alp-token-red-1000: #b22d3f;
+  --alp-token-warning-900: #b26205;
   --alp-token-gray-1100a: rgba(110, 108, 107, 0.77);
 
   --alp-token-text-default: var(--alp-token-sand-1400);
@@ -307,4 +308,149 @@ input::placeholder {
   border: 1px solid var(--alp-token-border-weak);
   border-radius: var(--alp-token-borderRadius-card);
   background: var(--alp-token-bg-neutralWeak);
+}
+
+/* Header navigation, shared by the directory and the values page. */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--alp-token-borderRadius-sm);
+  font-size: var(--alp-token-fontSize-bodyM);
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-text-secondary);
+}
+
+.nav-link:hover {
+  background: var(--alp-token-bg-neutralWeak);
+  color: var(--alp-token-text-default);
+}
+
+.nav-link[data-active="true"] {
+  background: var(--alp-token-bg-neutralWeak);
+  color: var(--alp-token-text-default);
+}
+
+/* Numeric reference table: labels left, figures right and column-aligned. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--alp-token-fontSize-bodyM);
+}
+
+.data-table th {
+  text-align: right;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--alp-token-border-weak);
+  background: var(--alp-token-bg-neutralWeak);
+  font-size: var(--alp-token-fontSize-bodyS);
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.data-table th:first-child,
+.data-table td:first-child {
+  text-align: left;
+}
+
+.data-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--alp-token-border-weak);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--alp-token-fontWeight-medium);
+  vertical-align: top;
+}
+
+.data-table td:first-child {
+  font-weight: var(--alp-token-fontWeight-regular);
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--alp-token-bg-neutralWeak);
+}
+
+.data-table .event {
+  display: block;
+  font-weight: var(--alp-token-fontWeight-semiBold);
+}
+
+.data-table .event-detail {
+  font-size: var(--alp-token-fontSize-bodyS);
+  color: var(--alp-token-text-secondary);
+}
+
+.muted {
+  color: var(--alp-token-text-secondary);
+  font-weight: var(--alp-token-fontWeight-regular);
+}
+
+.callout {
+  flex-direction: row;
+  gap: 10px;
+  padding: 16px 18px;
+  font-size: var(--alp-token-fontSize-bodyM);
+  line-height: var(--alp-token-lineHeight-bodyM);
+}
+
+.callout .dot {
+  flex: none;
+  margin-top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.methodology {
+  padding: 24px 28px;
+}
+
+.methodology ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: var(--alp-token-fontSize-bodyM);
+  line-height: var(--alp-token-lineHeight-bodyM);
+}
+
+/*
+ * Value cells stack the sent amount over its multiplier. The pill is styled
+ * differently when the multiplier is not 1, so a live boost or test is visible
+ * at a glance rather than hidden inside an unremarkable number.
+ */
+.cell-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+}
+
+.mult {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  margin-top: 3px;
+  border-radius: var(--alp-token-borderRadius-round);
+  background: var(--alp-token-bg-neutralWeak);
+  border: 1px solid var(--alp-token-border-weak);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-text-secondary);
+}
+
+.mult.override {
+  background: #f7f0fe;
+  border-color: var(--alp-token-purple-200);
+  color: var(--alp-token-purple-1100);
 }

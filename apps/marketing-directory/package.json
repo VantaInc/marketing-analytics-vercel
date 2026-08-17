@@ -13,6 +13,7 @@
   "dependencies": {
     "@vanta/auth": "workspace:*",
     "@vanta/google-sheets": "workspace:*",
+    "@vanta/snowflake": "workspace:*",
     "@vanta/ui": "workspace:*",
     "lucide-react": "^0.522.0",
     "next": "^16.0.0",

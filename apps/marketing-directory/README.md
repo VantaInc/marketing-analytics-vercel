@@ -12,20 +12,20 @@ Sheets), so the index deliberately sits outside any one of them.
 One tab, one row per dashboard, header row first. Column names are matched
 case-insensitively, so `Refresh cadence` and `refresh cadence` both work.
 
-| Column               | Required | Drives                                                                     |
-| -------------------- | -------- | -------------------------------------------------------------------------- |
-| `Name`               | Yes      | Card title. Rows without a name are skipped                                |
+| Column               | Required | Drives                                                                      |
+| -------------------- | -------- | --------------------------------------------------------------------------- |
+| `Name`               | Yes      | Card title. Rows without a name are skipped                                 |
 | `Description`        | Yes      | Card body, clamped to 2 lines with a Show more toggle. Length is not capped |
-| `URL`                | Yes      | Where the card links                                                       |
-| `Tool`               | Yes      | Tool tag, colored dot, and the tool filter                                 |
-| `Category`           | Yes      | The filter chips                                                           |
-| `Status`             | Yes      | Badge. One of `Certified`, `Working`, `Deprecated` (defaults to `Working`) |
-| `Owner`              | Yes      | Footer avatar and name                                                     |
-| `Refresh cadence`    | Yes      | Footer refresh label                                                       |
-| `Supporting sources` | No       | Doc pills on the card (see below)                                          |
-| `Screenshot URL`     | No       | Thumbnail in the card's expanded state (see below)                         |
-| `Last reviewed`      | No       | Parsed, not yet rendered                                                   |
-| `Grain/scope`        | No       | Parsed, not yet rendered                                                   |
+| `URL`                | Yes      | Where the card links                                                        |
+| `Tool`               | Yes      | Tool tag, colored dot, and the tool filter                                  |
+| `Category`           | Yes      | The filter chips                                                            |
+| `Status`             | Yes      | Badge. One of `Certified`, `Working`, `Deprecated` (defaults to `Working`)  |
+| `Owner`              | Yes      | Footer avatar and name                                                      |
+| `Refresh cadence`    | Yes      | Footer refresh label                                                        |
+| `Supporting sources` | No       | Doc pills on the card (see below)                                           |
+| `Screenshot URL`     | No       | Thumbnail in the card's expanded state (see below)                          |
+| `Last reviewed`      | No       | Parsed, not yet rendered                                                    |
+| `Grain/scope`        | No       | Parsed, not yet rendered                                                    |
 
 Use Data → Data validation to make `Tool`, `Category`, and `Status` dropdowns —
 typos silently split a filter into two.
@@ -188,3 +188,80 @@ Full runbook:
 **Turn on Vercel Authentication for the project before the first production
 deploy**, and set it to apply to all deployments. It is the only access control
 this app has.
+
+## Offline conversion values page
+
+`/offline-conversion` shows the dollar values sent back to ad platforms at each
+funnel stage, read live from `VANTA.DBT.SEED_OFFLINE_CONVERSION_VALUES`.
+
+### How the data gets there
+
+The seed table is produced by dbt. This app only reads it — it does not compute
+or cache the values, so "keeping it up to date" is really two independent
+schedules:
+
+1. **dbt refreshes the seed.** Whatever job builds
+   `SEED_OFFLINE_CONVERSION_VALUES` (a `dbt seed` from a committed CSV, or a
+   model) sets the real cadence. If that job runs nightly, the page is at best a
+   day fresh no matter what this app does.
+2. **This page re-reads it hourly.** `revalidate = 3600` in
+   `src/app/offline-conversion/page.tsx`. The first request after an hour
+   triggers a background re-query; visitors never wait on Snowflake.
+
+There is no cron, webhook, or sync job to run on the Vercel side. Nothing here
+needs scheduling — the page pulls on read.
+
+### Setup
+
+The app authenticates to Snowflake with **key-pair auth**, not a password.
+
+1. Generate an RSA key pair and register the public key on a Snowflake user
+   (`ALTER USER … SET RSA_PUBLIC_KEY = '…'`). Use a service user, not a person's
+   account — a page that breaks when someone leaves is not a dashboard.
+2. Grant that user a role with `SELECT` on the seed table only. It needs no
+   write access anywhere.
+3. Set the `SNOWFLAKE_*` variables from [`.env.example`](./.env.example) in
+   Vercel. `SNOWFLAKE_PRIVATE_KEY` is the PEM contents including the
+   `-----BEGIN…` and `-----END…` lines.
+
+Unset variables render an explicit "not configured" row rather than an empty
+table. A genuine query failure throws — a bidding-values table that silently
+renders blank is worse than one that visibly errors.
+
+### Schema assumptions
+
+The query is `SELECT *`, filtered in TypeScript
+(`src/lib/offline-conversion.ts`) against lowercased column names:
+
+| Column           | Used for                                                          |
+| ---------------- | ----------------------------------------------------------------- |
+| `EVENT_NAME`     | Row matching — `MQL`, `S0`, `S2`, `CW`                            |
+| `SEGMENT`        | Column matching — `Early Stage`, `Growth`, `Commercial Plus`, `*` |
+| `BASE_VALUE_USD` | The modelled value, before any multiplier                         |
+| `IS_ACTIVE`      | Only an explicit `false` excludes a row                           |
+| `GEO`            | Optional. Only `*` rows are shown                                 |
+| `MULTIPLIER`     | Optional. Applied, not filtered. Defaults to `1`                  |
+
+`GEO` filters to the all-geo rows, so regional overrides layered on top are not
+double-counted. It no-ops if the column does not exist.
+
+`MULTIPLIER` is deliberately **applied rather than filtered on**. Each cell
+shows the sent value (`base × multiplier`) with the multiplier on a pill
+beneath, styled differently when it is not `1`. Hiding multiplied rows would
+display a number the ad platform is not actually receiving. Absent,
+unparseable, or non-positive multipliers fall back to `1`, so a blank cell in
+the seed cannot zero out a bid.
+
+To run a temporary boost or test, change the multiplier rather than the base:
+the underlying model stays intact and the adjustment stays visible on the page.
+
+**These column names were inferred from the prototype, not verified against the
+live table** — if the page shows dashes where values should be, check them
+first.
+
+### A note on what is not in this file
+
+This repository is public. The page deliberately carries no conversion rates or
+forecast dollar figures in its source — every number renders from Snowflake at
+request time, visible only to authenticated viewers. Keep it that way when
+editing the methodology copy.
