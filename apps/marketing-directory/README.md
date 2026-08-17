@@ -204,12 +204,21 @@ schedules:
    `SEED_OFFLINE_CONVERSION_VALUES` (a `dbt seed` from a committed CSV, or a
    model) sets the real cadence. If that job runs nightly, the page is at best a
    day fresh no matter what this app does.
-2. **This page re-reads it hourly.** `revalidate = 3600` in
-   `src/app/offline-conversion/page.tsx`. The first request after an hour
-   triggers a background re-query; visitors never wait on Snowflake.
+2. **This page queries on every request.** `dynamic = "force-dynamic"` in
+   `src/app/offline-conversion/page.tsx`, matching `apps/reengage-events-q2`.
+   The values are therefore always as current as the seed.
 
 There is no cron, webhook, or sync job to run on the Vercel side. Nothing here
 needs scheduling — the page pulls on read.
+
+The route is deliberately **not** prerendered. With `revalidate` alone it was
+static, so `next build` ran the query at build time and any warehouse outage or
+missing grant failed the entire deploy. Keep it dynamic: a reporting page should
+never be able to block a deployment.
+
+A failed query renders an error in the table body rather than throwing, so the
+methodology and navigation survive a warehouse problem. The full error goes to
+the server log; only its message reaches the page.
 
 ### Setup
 

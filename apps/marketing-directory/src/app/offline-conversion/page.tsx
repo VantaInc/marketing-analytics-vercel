@@ -8,11 +8,19 @@ import {
 } from "@/lib/offline-conversion";
 import { SiteHeader } from "../site-header";
 
-/** Re-query Snowflake at most hourly; the seed changes quarterly at most. */
-export const revalidate = 3600;
+/**
+ * Rendered per request, never prerendered. With `revalidate` alone this route
+ * was static, so `next build` ran the Snowflake query at build time and any
+ * warehouse or grant problem failed the whole deploy. Matches the approach in
+ * apps/reengage-events-q2.
+ */
+export const dynamic = "force-dynamic";
 
 /** snowflake-sdk needs node:crypto/net — it cannot run on the edge runtime. */
 export const runtime = "nodejs";
+
+/** The JWT handshake is ~1-2s on a cold instance; default 10s is too tight. */
+export const maxDuration = 60;
 
 export const metadata: Metadata = {
   description:
@@ -27,7 +35,7 @@ const usd = new Intl.NumberFormat("en-US", {
 });
 
 export default async function Page() {
-  const { byEventAndSegment, rows } = await getConversionValues();
+  const { byEventAndSegment, error, rows } = await getConversionValues();
   const configured = rows !== null;
   const growthS0 = byEventAndSegment["s0|Growth"];
 
@@ -108,7 +116,41 @@ export default async function Page() {
               </tr>
             </thead>
             <tbody>
-              {!configured ? (
+              {error !== null ? (
+                <tr>
+                  <td
+                    colSpan={SEGMENTS.length + 1}
+                    style={{ textAlign: "left", padding: 28, fontWeight: 400 }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ color: "var(--alp-token-text-danger)" }}>
+                        Couldn&rsquo;t read {CONVERSION_TABLE}.
+                      </span>
+                      <code
+                        style={{
+                          fontSize: "var(--alp-token-fontSize-bodyS)",
+                          color: "var(--alp-token-text-secondary)",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {error}
+                      </code>
+                      <span
+                        className="muted"
+                        style={{ fontSize: "var(--alp-token-fontSize-bodyS)" }}
+                      >
+                        No values are shown rather than stale or partial ones.
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : !configured ? (
                 <tr>
                   <td
                     className="muted"

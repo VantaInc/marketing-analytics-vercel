@@ -38,7 +38,9 @@ export type ConversionValue = {
 export type ConversionValues = {
   /** Keyed `eventName|segment`, both as they appear in SEGMENTS/FUNNEL_EVENTS. */
   byEventAndSegment: Record<string, ConversionValue>;
-  /** Null when Snowflake is not configured — the page renders empty, not wrong. */
+  /** Set when the query failed. The page shows it instead of the values. */
+  error: string | null;
+  /** Null when unconfigured or the query failed — never a misleading empty set. */
   rows: ConversionValue[] | null;
 };
 
@@ -132,16 +134,34 @@ export function toConversionValues(rows: RawRow[]): ConversionValue[] {
 }
 
 /**
- * Reads the seed table. Returns `rows: null` when Snowflake is unconfigured so
- * the page can say so plainly; a genuine query failure throws, because a bidding
- * table that quietly renders blank is worse than one that visibly errors.
+ * Reads the seed table.
+ *
+ * Never throws. A query failure is returned as `error` so the page can show
+ * what went wrong while keeping the methodology and navigation intact — a
+ * thrown error would replace the whole page with a 500. `rows` stays null in
+ * both the unconfigured and failed cases, so a problem can never be mistaken
+ * for "there are no values".
  */
 export async function getConversionValues(): Promise<ConversionValues> {
   if (!isSnowflakeConfigured()) {
-    return { byEventAndSegment: {}, rows: null };
+    return { byEventAndSegment: {}, error: null, rows: null };
   }
 
-  const raw = await getSnowflakeConnector().query<RawRow>(QUERY);
+  let raw: RawRow[];
+
+  try {
+    raw = await getSnowflakeConnector().query<RawRow>(QUERY);
+  } catch (cause) {
+    // Full error to the server log; only the message reaches the page.
+    console.error(`Failed to read ${CONVERSION_TABLE}`, cause);
+
+    return {
+      byEventAndSegment: {},
+      error: cause instanceof Error ? cause.message : String(cause),
+      rows: null,
+    };
+  }
+
   const rows = toConversionValues(raw);
   const byEventAndSegment: Record<string, ConversionValue> = {};
 
@@ -152,5 +172,5 @@ export async function getConversionValues(): Promise<ConversionValues> {
     byEventAndSegment[`${row.eventName}|${row.segment}`] = row;
   }
 
-  return { byEventAndSegment, rows };
+  return { byEventAndSegment, error: null, rows };
 }
