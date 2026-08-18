@@ -300,6 +300,41 @@ the table grant itself looks correct.
 If the columns turn out to differ from the table above, the page will name the
 ones it actually found; change the parsing in `src/lib/offline-conversion.ts`.
 
+### Change history
+
+`/offline-conversion` shows every edit to the seed, read from the dbt
+repository's git history.
+
+The values are a **dbt seed** — a CSV that `dbt seed` truncates and reloads on
+every run — so Snowflake only ever holds current state. No query against the
+table can say who changed what. That history is in git, where each edit to
+`seeds/offline_conversions/seed_offline_conversion_values.csv` is a commit with
+an author, a timestamp, and a diff.
+
+`src/lib/value-history.ts` reads that file's commits, fetches the CSV at each
+one, and diffs consecutive versions. Rows are identified by
+`event_name + segment + geo`; a move in `base_value_usd`, `multiplier`, or
+`is_active` is reported as a change, and rows appearing or disappearing are
+reported as added or removed.
+
+Set `DBT_REPO_TOKEN` to a GitHub token with **read-only Contents** access to
+`VantaInc/dbt` and nothing else. A fine-grained personal access token scoped to
+that single repository is the right shape. Without it the section says so
+rather than rendering empty.
+
+Two things to know:
+
+- The commit list is capped at 25. Beyond that the section says older history
+  exists in the dbt repository rather than silently showing a partial picture.
+- GitHub responses are cached for an hour, while the Snowflake values are read
+  per request. Git history changes far less often than a page view, and this
+  keeps opening the page from spending rate limit on an unchanged commit list.
+
+Note this widens what the deployment can surface: anyone who can open the page
+can see the seed's contents and history. That is the same audience as the values
+themselves, so it is not new exposure — but the token should stay scoped to one
+repository so it cannot reach anything else.
+
 ### A note on what is not in this file
 
 This repository is public. The page deliberately carries no conversion rates or

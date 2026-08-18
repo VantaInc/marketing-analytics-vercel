@@ -7,6 +7,8 @@ import {
   getConversionValues,
 } from "@/lib/offline-conversion";
 import { getSnowflakeContext } from "@/lib/snowflake";
+import { getValueHistory } from "@/lib/value-history";
+import { HistorySection } from "./history-section";
 import { SiteHeader } from "../site-header";
 
 /**
@@ -36,8 +38,10 @@ const usd = new Intl.NumberFormat("en-US", {
 });
 
 export default async function Page() {
-  const { byEventAndSegment, diagnostic, error, rows } =
-    await getConversionValues();
+  // Independent sources: values from Snowflake, history from GitHub. Fetched
+  // together so a slow warehouse does not serialise in front of the history.
+  const [{ byEventAndSegment, diagnostic, error, rows }, history] =
+    await Promise.all([getConversionValues(), getValueHistory()]);
   const configured = rows !== null;
   const growthS0 = byEventAndSegment["s0|Growth"];
   const context = getSnowflakeContext();
@@ -376,6 +380,12 @@ export default async function Page() {
             </ul>
           </div>
         </div>
+
+        <HistorySection
+          entries={history.entries}
+          error={history.error}
+          truncated={history.truncated}
+        />
 
         <div
           style={{
