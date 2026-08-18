@@ -204,12 +204,21 @@ schedules:
    `SEED_OFFLINE_CONVERSION_VALUES` (a `dbt seed` from a committed CSV, or a
    model) sets the real cadence. If that job runs nightly, the page is at best a
    day fresh no matter what this app does.
-2. **This page re-reads it hourly.** `revalidate = 3600` in
-   `src/app/offline-conversion/page.tsx`. The first request after an hour
-   triggers a background re-query; visitors never wait on Snowflake.
+2. **This page queries on every request.** `dynamic = "force-dynamic"` in
+   `src/app/offline-conversion/page.tsx`, matching `apps/reengage-events-q2`.
+   The values are therefore always as current as the seed.
 
 There is no cron, webhook, or sync job to run on the Vercel side. Nothing here
 needs scheduling — the page pulls on read.
+
+The route is deliberately **not** prerendered. With `revalidate` alone it was
+static, so `next build` ran the query at build time and any warehouse outage or
+missing grant failed the entire deploy. Keep it dynamic: a reporting page should
+never be able to block a deployment.
+
+A failed query renders an error in the table body rather than throwing, so the
+methodology and navigation survive a warehouse problem. The full error goes to
+the server log; only its message reaches the page.
 
 ### Setup
 
@@ -258,6 +267,38 @@ the underlying model stays intact and the adjustment stays visible on the page.
 **These column names were inferred from the prototype, not verified against the
 live table** — if the page shows dashes where values should be, check them
 first.
+
+### When the Snowflake grant lands
+
+The page tells you what is wrong rather than rendering a silent grid of dashes.
+Load `/offline-conversion` and read the table body:
+
+| What you see                                | What it means                                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Values                                      | Done.                                                                                                         |
+| `Couldn't read <table>` + a Snowflake error | Connection or permission problem. The error is verbatim.                                                      |
+| `readable, but produced no usable values`   | The read worked. The message says whether the table was empty, the columns differ, or every row was filtered. |
+| `Snowflake is not configured`               | The `SNOWFLAKE_*` variables are not reaching the deployment.                                                  |
+
+Every failure state also prints the role, warehouse, and database the app
+connected with. **Check the role first.** A grant made to a role other than the
+one in `SNOWFLAKE_ROLE` produces an error identical to the table not existing,
+and if `SNOWFLAKE_ROLE` is unset the connection silently uses the user's default
+role — which is rarely the role anyone granted access to.
+
+To confirm the grant landed on the right role, run this **as the service user**:
+
+```sql
+SHOW GRANTS TO ROLE <the value of SNOWFLAKE_ROLE>;
+SHOW TABLES LIKE 'SEED_OFFLINE_CONVERSION_VALUES' IN DATABASE VANTA;
+```
+
+The role needs `USAGE` on the database **and** the schema, plus `SELECT` on the
+table. Missing `USAGE` on the schema is the most common cause of this error when
+the table grant itself looks correct.
+
+If the columns turn out to differ from the table above, the page will name the
+ones it actually found; change the parsing in `src/lib/offline-conversion.ts`.
 
 ### A note on what is not in this file
 

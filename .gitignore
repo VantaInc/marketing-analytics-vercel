@@ -24,3 +24,6 @@ pnpm-debug.log*
 
 # system
 .DS_Store
+
+# snowflake-sdk writes this beside the app that opened the connection.
+snowflake.log
