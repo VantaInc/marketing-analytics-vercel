@@ -29,6 +29,19 @@ export const metadata: Metadata = {
   title: "Offline conversion values",
 };
 
+/** Michael Chen asked the page link out to what it references. */
+const PLANNING_DOC_URL =
+  "https://docs.google.com/document/d/1EC-n4cC-xS9EP_jtK2b95z2-1_iacsClHZaABNOUy8A/edit";
+
+/**
+ * Stated rather than computed: the window is a property of the last
+ * calibration, not of today. Deriving it from the current date would silently
+ * describe a cohort that was never measured.
+ */
+const CALIBRATION_DATE = "2026-08-06";
+const COHORT_START = "2025-02-06";
+const COHORT_END = "2026-02-06";
+
 const usd = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0,
@@ -298,10 +311,15 @@ export default async function Page() {
               style={{ background: "var(--alp-token-warning-900)" }}
             />
             <div>
-              <b>These are bidding signals, not revenue.</b>{" "}
+              <b>These are bidding signals, not revenue reporting.</b>{" "}
               <span>
-                Values reflect expected pipeline value at each stage —
-                don&rsquo;t quote them as ACV or deal size in a QBR.
+                Deal values come from the planning forecast rather than trailing
+                actuals — bidding aims at where the business is going, not where
+                it&rsquo;s been. The exceptions are late-funnel: Stage 2 uses
+                the deal&rsquo;s actual pipeline ARR when available (~70% of S2
+                events; the forecast value is the fallback), and Closed Won
+                always passes actual ARR. Don&rsquo;t sum values across events —
+                MQL, S0, S2, and CW are the same deal at four points.
               </span>
             </div>
           </div>
@@ -341,37 +359,75 @@ export default async function Page() {
           <div className="card methodology">
             <ul>
               <li>
-                <b>Conversion rates come from our own funnel history</b> —
-                events 6–18 months old, so outcomes are known, with duplicate
-                stage-entries removed.
+                <b>Forecast values come from the FY27 S2 ARR planning doc</b> —{" "}
+                <a href={PLANNING_DOC_URL} target="_blank" rel="noreferrer">
+                  Business Systems Intake &middot; FY27 S2 ARR Values
+                </a>
+                . We use the quarter&rsquo;s values <b>averaged across geos</b>;
+                there is no regional differentiation yet, so a segment carries
+                one value everywhere. Commercial Plus maps to the doc&rsquo;s{" "}
+                <i>Commercial</i> rows rather than <i>Enterprise</i>, because
+                warehouse actuals for 401+ headcount deals line up with
+                Commercial. The Enterprise and Emerging Markets rows are unused.
               </li>
               <li>
-                <b>Deal values come from the planning forecast</b>, not trailing
-                actuals — bidding aims at where the business is going. Stage 2
-                uses the deal&rsquo;s actual pipeline ARR when available (~70%
-                of the time); the forecast value is the fallback.
+                <b>Values are static within the quarter.</b> The rate × forecast
+                multiplication is baked into the seed at calibration time, not
+                recomputed per run. Two reasons: Smart Bidding learns against a
+                value <i>distribution</i>, and values that drift continuously
+                add noise to the signal it is trying to learn; and an in-quarter
+                recalculation would mostly measure noise, because recent events
+                have not matured — a July MQL that has not reached S2 yet is
+                young, not failed. Rates and forecast values refresh together on
+                the quarterly cadence, as a reviewed change to the seed,
+                auditable in git.
               </li>
               <li>
-                <b>Leads from 10,000+ employee companies are sent at $0</b> —
-                historically spam-heavy and rarely closeable, and a $0 value
-                actively teaches bidding to avoid them. They&rsquo;re also
-                excluded from the rate measurement.
+                <b>Conversion rates use a rolling 6–18 month window</b> — events
+                aged six to eighteen months at calibration. Calibrated{" "}
+                {CALIBRATION_DATE}, so the current cohort is events dated{" "}
+                {COHORT_START} through {COHORT_END}. The six-month floor is a
+                maturity cutoff: an event needs roughly six months for its S2
+                outcome to be knowable, and including younger events undercounts
+                conversion. The eighteen-month cap keeps rates reflective of the
+                current GTM motion. A fixed calendar range would do both jobs
+                worse — it goes stale as time passes, and it mixes fully matured
+                cohorts with still-maturing ones.
               </li>
               <li>
-                <b>Segments are defined by company headcount</b> — Early Stage
-                0–50, Growth 51–400, Commercial Plus 401+ — so nearly every
-                event gets a real segment, rather than relying on the CRM
-                segment field.
+                <b>Leads from 10,000+ employee companies are sent at $0.</b> Per
+                Paid Media team guidance, these are historically spam-heavy,
+                rarely closeable, and not genuinely digital-attributed. They are
+                sent at $0 rather than withheld because the conversion did
+                happen — the only question is what it is worth. Omitting the
+                event tells the platform the click simply did not convert;
+                sending $0 tells it this audience converts and is worth nothing,
+                so value-based bidding actively steers away from lookalikes. It
+                also keeps volumes reconciling between the warehouse and
+                platform reporting, keeps the rows visible via the{" "}
+                <code>is_10k_plus</code> flag, and makes the policy reversible
+                with a seed edit rather than a logic change. <b>Caveat:</b> in
+                the count-based arm of the A/B test these still count +1 each,
+                so if the count variant wins we should revisit dropping them
+                instead.
+              </li>
+              <li>
+                <b>Segments are defined by headcount tier</b>, read from{" "}
+                <code>HEADCOUNT_TIER</code> in{" "}
+                <code>VANTA.DBT.DIM_MARKETING_FUNNEL</code>, which resolves as{" "}
+                <code>
+                  coalesce(opportunity.opp_headcount_tier__c,
+                  account.headcount_tier__c)
+                </code>{" "}
+                — the opportunity value where set, the account value as
+                fallback. The tier&rsquo;s lower bound is parsed (
+                <code>&lsquo;7: 401-750&rsquo;</code> → <code>401</code>) and
+                bucketed: ≤50 Early Stage (unknowns included), 51–400 Growth,
+                401+ Commercial Plus, with ≥10,000 flagged for the $0 policy.
               </li>
               <li>
                 <b>Values refresh quarterly</b> with the planning forecast, and
-                rates are re-measured from the warehouse.
-              </li>
-              <li>
-                <b>Reading platform reports:</b> MQL, S0, S2, and CW are the
-                same deal at different stages — don&rsquo;t sum values across
-                events. Stage 2 (pipeline value) can legitimately exceed Closed
-                Won (actual revenue).
+                rates are re-measured from the warehouse at the same time.
               </li>
             </ul>
           </div>
