@@ -454,3 +454,87 @@ input::placeholder {
   border-color: var(--alp-token-purple-200);
   color: var(--alp-token-purple-1100);
 }
+
+/*
+ * The value formula, shown as terms rather than a sentence: the multiplication
+ * is the whole explanation, so it reads faster as boxes than as prose.
+ */
+.formula {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  font-size: var(--alp-token-fontSize-bodyM);
+}
+
+.formula .term {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 14px;
+  background: var(--alp-token-bg-neutralWeak);
+  border: 1px solid var(--alp-token-border-weak);
+  border-radius: var(--alp-token-borderRadius-sm);
+}
+
+.formula .term.accent {
+  background: #f7f0fe;
+  border-color: var(--alp-token-purple-200);
+}
+
+.formula .term.accent b {
+  color: var(--alp-token-purple-1100);
+}
+
+.formula .term b {
+  font-size: var(--alp-token-fontSize-bodyM);
+}
+
+.formula .term span {
+  font-size: 0.6875rem;
+  color: var(--alp-token-text-secondary);
+}
+
+.formula .op {
+  font-size: var(--alp-token-fontSize-bodyL);
+  font-weight: var(--alp-token-fontWeight-semiBold);
+  color: var(--alp-token-text-secondary);
+}
+
+/* Assumptions as scannable cards rather than a bullet list. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.fact {
+  gap: 4px;
+  padding: 16px 18px;
+}
+
+.fact .label {
+  font-size: 0.6875rem;
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fact .value {
+  font-size: var(--alp-token-fontSize-bodyM);
+  font-weight: var(--alp-token-fontWeight-semiBold);
+  line-height: 1.4;
+}
+
+.fact .note {
+  font-size: var(--alp-token-fontSize-bodyS);
+  line-height: 1.5;
+  color: var(--alp-token-text-secondary);
+}
+
+.fact .note code {
+  font-size: 0.6875rem;
+  word-break: break-word;
+}

@@ -299,10 +299,9 @@ export default async function Page() {
               {growthS0 === undefined
                 ? "the S0 Growth value"
                 : usd.format(growthS0.sentUsd)}
-              . The Default column applies when segment is unknown at conversion
-              time. Sent value = base × multiplier — change the multiplier, not
-              the base, for temporary boosts or tests, so the underlying model
-              stays intact.
+              . The Default column applies when segment is unknown. Sent value =
+              base × multiplier — for boosts or tests, change the multiplier,
+              not the base, so the model stays intact.
             </div>
           </div>
           <div className="card callout">
@@ -311,125 +310,147 @@ export default async function Page() {
               style={{ background: "var(--alp-token-warning-900)" }}
             />
             <div>
-              <b>These are bidding signals, not revenue reporting.</b>{" "}
+              <b>Bidding signals, not revenue.</b>{" "}
               <span>
-                Deal values come from the planning forecast rather than trailing
-                actuals — bidding aims at where the business is going, not where
-                it&rsquo;s been. The exceptions are late-funnel: Stage 2 uses
-                the deal&rsquo;s actual pipeline ARR when available (~70% of S2
-                events; the forecast value is the fallback), and Closed Won
-                always passes actual ARR. Don&rsquo;t sum values across events —
-                MQL, S0, S2, and CW are the same deal at four points.
+                Values reflect expected pipeline value at each stage —
+                don&rsquo;t quote them as ACV or deal size in a QBR. Stage 2
+                uses the deal&rsquo;s actual pipeline ARR when available (~70%
+                of S2 events; the forecast value is the fallback), and Closed
+                Won always passes actual ARR.
+              </span>
+            </div>
+          </div>
+          <div className="card callout">
+            <span
+              className="dot"
+              style={{ background: "var(--alp-token-warning-900)" }}
+            />
+            <div>
+              <b>Don&rsquo;t sum across events.</b>{" "}
+              <span>
+                MQL, S0, S2, and CW are the same deal at different stages —
+                summing their values counts one deal four times.
               </span>
             </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "var(--alp-token-fontSize-bodyL)",
-                lineHeight: "var(--alp-token-lineHeight-bodyL)",
-                fontWeight: 600,
-              }}
-            >
-              How the values are calculated
-            </h2>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "var(--alp-token-fontSize-bodyM)",
-                lineHeight: "var(--alp-token-lineHeight-bodyM)",
-                color: "var(--alp-token-text-secondary)",
-                maxWidth: 640,
-              }}
-            >
-              Value = (probability the event becomes a Stage 2 opportunity) ×
-              (forecasted Stage 2 deal value for the segment).
-            </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "var(--alp-token-fontSize-bodyL)",
+              lineHeight: "var(--alp-token-lineHeight-bodyL)",
+              fontWeight: 600,
+            }}
+          >
+            How the values are calculated
+          </h2>
+
+          <div className="card formula">
+            <span className="term">
+              <b>P(reaches Stage 2)</b>
+              <span>from our funnel history</span>
+            </span>
+            <span className="op">×</span>
+            <span className="term">
+              <b>Stage 2 deal value</b>
+              <span>FY27 planning doc, by segment</span>
+            </span>
+            <span className="op">=</span>
+            <span className="term accent">
+              <b>Conversion value</b>
+              <span>sent to the platform</span>
+            </span>
           </div>
+
           {/*
-           * Deliberately no conversion rates or forecast dollar figures in this
-           * copy: this repository is public, and those quantify funnel
-           * performance. The rates live in the warehouse alongside the values;
-           * the method is what belongs here.
+           * Still no conversion rates or forecast dollar figures in this copy:
+           * the repository is public. The planning doc link carries the numbers
+           * and enforces its own permissions.
            */}
-          <div className="card methodology">
-            <ul>
-              <li>
-                <b>Forecast values come from the FY27 S2 ARR planning doc</b> —{" "}
+          <div className="facts">
+            <div className="card fact">
+              <span className="label">Conversion rates</span>
+              <span className="value">Rolling 6–18 month window</span>
+              <span className="note">
+                Events aged six to eighteen months at calibration, so outcomes
+                are known. Calibrated {CALIBRATION_DATE} — the current cohort is
+                events dated {COHORT_START} through {COHORT_END}. Rolling ages
+                rather than a fixed range: six months is the maturity floor,
+                eighteen keeps rates on the current GTM motion.
+              </span>
+            </div>
+            <div className="card fact">
+              <span className="label">Forecast values</span>
+              <span className="value">FY27 S2 ARR planning doc</span>
+              <span className="note">
                 <a href={PLANNING_DOC_URL} target="_blank" rel="noreferrer">
-                  Business Systems Intake &middot; FY27 S2 ARR Values
+                  Business Systems Intake · FY27 S2 ARR Values
                 </a>
-                . We use the quarter&rsquo;s values <b>averaged across geos</b>;
-                there is no regional differentiation yet, so a segment carries
-                one value everywhere. Commercial Plus maps to the doc&rsquo;s{" "}
-                <i>Commercial</i> rows rather than <i>Enterprise</i>, because
-                warehouse actuals for 401+ headcount deals line up with
-                Commercial. The Enterprise and Emerging Markets rows are unused.
-              </li>
-              <li>
-                <b>Values are static within the quarter.</b> The rate × forecast
-                multiplication is baked into the seed at calibration time, not
-                recomputed per run. Two reasons: Smart Bidding learns against a
-                value <i>distribution</i>, and values that drift continuously
-                add noise to the signal it is trying to learn; and an in-quarter
-                recalculation would mostly measure noise, because recent events
-                have not matured — a July MQL that has not reached S2 yet is
-                young, not failed. Rates and forecast values refresh together on
-                the quarterly cadence, as a reviewed change to the seed,
-                auditable in git.
-              </li>
-              <li>
-                <b>Conversion rates use a rolling 6–18 month window</b> — events
-                aged six to eighteen months at calibration. Calibrated{" "}
-                {CALIBRATION_DATE}, so the current cohort is events dated{" "}
-                {COHORT_START} through {COHORT_END}. The six-month floor is a
-                maturity cutoff: an event needs roughly six months for its S2
-                outcome to be knowable, and including younger events undercounts
-                conversion. The eighteen-month cap keeps rates reflective of the
-                current GTM motion. A fixed calendar range would do both jobs
-                worse — it goes stale as time passes, and it mixes fully matured
-                cohorts with still-maturing ones.
-              </li>
-              <li>
-                <b>Leads from 10,000+ employee companies are sent at $0.</b> Per
-                Paid Media team guidance, these are historically spam-heavy,
-                rarely closeable, and not genuinely digital-attributed. They are
-                sent at $0 rather than withheld because the conversion did
-                happen — the only question is what it is worth. Omitting the
-                event tells the platform the click simply did not convert;
-                sending $0 tells it this audience converts and is worth nothing,
-                so value-based bidding actively steers away from lookalikes. It
-                also keeps volumes reconciling between the warehouse and
-                platform reporting, keeps the rows visible via the{" "}
-                <code>is_10k_plus</code> flag, and makes the policy reversible
-                with a seed edit rather than a logic change. <b>Caveat:</b> in
-                the count-based arm of the A/B test these still count +1 each,
-                so if the count variant wins we should revisit dropping them
-                instead.
-              </li>
-              <li>
-                <b>Segments are defined by headcount tier</b>, read from{" "}
-                <code>HEADCOUNT_TIER</code> in{" "}
+                . The quarter&rsquo;s values averaged across geos — no regional
+                differentiation yet, so a segment carries one value everywhere.
+              </span>
+            </div>
+            <div className="card fact">
+              <span className="label">Segment mapping</span>
+              <span className="value">
+                Commercial Plus maps to the doc&rsquo;s Commercial rows
+              </span>
+              <span className="note">
+                Not Enterprise — warehouse actuals for 401+ headcount deals line
+                up with Commercial. The Enterprise and Emerging Markets rows are
+                unused.
+              </span>
+            </div>
+            <div className="card fact">
+              <span className="label">Segments</span>
+              <span className="value">Defined by headcount tier</span>
+              <span className="note">
+                ≤50 Early Stage (unknowns included), 51–400 Growth, 401+
+                Commercial Plus, with ≥10,000 flagged for the $0 policy. Read
+                from <code>HEADCOUNT_TIER</code> in{" "}
                 <code>VANTA.DBT.DIM_MARKETING_FUNNEL</code>, which resolves as{" "}
                 <code>
                   coalesce(opportunity.opp_headcount_tier__c,
                   account.headcount_tier__c)
-                </code>{" "}
-                — the opportunity value where set, the account value as
-                fallback. The tier&rsquo;s lower bound is parsed (
-                <code>&lsquo;7: 401-750&rsquo;</code> → <code>401</code>) and
-                bucketed: ≤50 Early Stage (unknowns included), 51–400 Growth,
-                401+ Commercial Plus, with ≥10,000 flagged for the $0 policy.
-              </li>
-              <li>
-                <b>Values refresh quarterly</b> with the planning forecast, and
-                rates are re-measured from the warehouse at the same time.
-              </li>
-            </ul>
+                </code>
+                .
+              </span>
+            </div>
+            <div className="card fact">
+              <span className="label">Guardrail</span>
+              <span className="value">10,000+ employee leads sent at $0</span>
+              <span className="note">
+                Per Paid Media team guidance: historically spam-heavy, rarely
+                closeable, not genuinely digital-attributed. Sent at $0 rather
+                than withheld — omitting the event says the click didn&rsquo;t
+                convert; $0 says this audience converts and is worth nothing, so
+                bidding actively steers away from lookalikes. Caveat: the
+                count-based arm of the A/B test still counts these +1 each.
+              </span>
+            </div>
+            <div className="card fact">
+              <span className="label">Refresh</span>
+              <span className="value">Values static within the quarter</span>
+              <span className="note">
+                Static by design — Smart Bidding learns against a value
+                distribution, so continuously drifting values add noise to the
+                signal it is learning, and an in-quarter recalculation would
+                mostly measure immaturity. Forecast values update with each
+                quarter&rsquo;s planning doc; rates re-calibrate on the rolling
+                window.
+              </span>
+            </div>
+            <div className="card fact">
+              <span className="label">Reading reports</span>
+              <span className="value">Stage 2 can exceed Closed Won</span>
+              <span className="note">
+                Stage 2 is pipeline value; Closed Won is actual revenue.
+                Pipeline legitimately exceeding revenue is expected, not a data
+                bug.
+              </span>
+            </div>
           </div>
         </div>
 
