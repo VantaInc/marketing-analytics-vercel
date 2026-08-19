@@ -538,3 +538,8 @@ input::placeholder {
   font-size: 0.6875rem;
   word-break: break-word;
 }
+
+.fact .note a {
+  color: var(--alp-token-purple-1100);
+  font-weight: var(--alp-token-fontWeight-medium);
+}

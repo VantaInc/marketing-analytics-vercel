@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 /** Michael Chen asked the page link out to what it references. */
 const PLANNING_DOC_URL =
-  "https://docs.google.com/document/d/1EC-n4cC-xS9EP_jtK2b95z2-1_iacsClHZaABNOUy8A/edit";
+  "https://docs.google.com/document/d/1EC-n4cC-xS9EP_jtK2b95z2-1_iacsClHZaABNOUy8A/edit?tab=t.0#heading=h.hjg81dtiw4nw";
 
 /**
  * Stated rather than computed: the window is a property of the last
@@ -121,7 +121,7 @@ export default async function Page() {
               paddingBottom: 4,
             }}
           >
-            {CONVERSION_TABLE}
+            {CONVERSION_TABLE} · refreshed daily
           </div>
         </div>
 
@@ -300,8 +300,9 @@ export default async function Page() {
                 ? "the S0 Growth value"
                 : usd.format(growthS0.sentUsd)}
               . The Default column applies when segment is unknown. Sent value =
-              base × multiplier — for boosts or tests, change the multiplier,
-              not the base, so the model stays intact.
+              base × multiplier — all multipliers are 1× today; for boosts or
+              tests, change the multiplier, not the base, so the model stays
+              intact.
             </div>
           </div>
           <div className="card callout">
@@ -313,10 +314,7 @@ export default async function Page() {
               <b>Bidding signals, not revenue.</b>{" "}
               <span>
                 Values reflect expected pipeline value at each stage —
-                don&rsquo;t quote them as ACV or deal size in a QBR. Stage 2
-                uses the deal&rsquo;s actual pipeline ARR when available (~70%
-                of S2 events; the forecast value is the fallback), and Closed
-                Won always passes actual ARR.
+                don&rsquo;t quote them as ACV or deal size in a QBR.
               </span>
             </div>
           </div>
@@ -376,9 +374,7 @@ export default async function Page() {
               <span className="note">
                 Events aged six to eighteen months at calibration, so outcomes
                 are known. Calibrated {CALIBRATION_DATE} — the current cohort is
-                events dated {COHORT_START} through {COHORT_END}. Rolling ages
-                rather than a fixed range: six months is the maturity floor,
-                eighteen keeps rates on the current GTM motion.
+                events dated {COHORT_START} through {COHORT_END}.
               </span>
             </div>
             <div className="card fact">
@@ -386,10 +382,11 @@ export default async function Page() {
               <span className="value">FY27 S2 ARR planning doc</span>
               <span className="note">
                 <a href={PLANNING_DOC_URL} target="_blank" rel="noreferrer">
-                  Business Systems Intake · FY27 S2 ARR Values
-                </a>
-                . The quarter&rsquo;s values averaged across geos — no regional
+                  Business Systems Intake · FY27 S2 ARR Values ↗
+                </a>{" "}
+                — the quarter&rsquo;s values averaged across geos; no regional
                 differentiation yet, so a segment carries one value everywhere.
+                Static within the quarter.
               </span>
             </div>
             <div className="card fact">
@@ -408,14 +405,7 @@ export default async function Page() {
               <span className="value">Defined by headcount tier</span>
               <span className="note">
                 ≤50 Early Stage (unknowns included), 51–400 Growth, 401+
-                Commercial Plus, with ≥10,000 flagged for the $0 policy. Read
-                from <code>HEADCOUNT_TIER</code> in{" "}
-                <code>VANTA.DBT.DIM_MARKETING_FUNNEL</code>, which resolves as{" "}
-                <code>
-                  coalesce(opportunity.opp_headcount_tier__c,
-                  account.headcount_tier__c)
-                </code>
-                .
+                Commercial Plus, with ≥10,000 flagged for the $0 policy.
               </span>
             </div>
             <div className="card fact">
@@ -426,29 +416,15 @@ export default async function Page() {
                 closeable, not genuinely digital-attributed. Sent at $0 rather
                 than withheld — omitting the event says the click didn&rsquo;t
                 convert; $0 says this audience converts and is worth nothing, so
-                bidding actively steers away from lookalikes. Caveat: the
-                count-based arm of the A/B test still counts these +1 each.
+                bidding actively steers away from lookalikes.
               </span>
             </div>
             <div className="card fact">
               <span className="label">Refresh</span>
               <span className="value">Values static within the quarter</span>
               <span className="note">
-                Static by design — Smart Bidding learns against a value
-                distribution, so continuously drifting values add noise to the
-                signal it is learning, and an in-quarter recalculation would
-                mostly measure immaturity. Forecast values update with each
-                quarter&rsquo;s planning doc; rates re-calibrate on the rolling
-                window.
-              </span>
-            </div>
-            <div className="card fact">
-              <span className="label">Reading reports</span>
-              <span className="value">Stage 2 can exceed Closed Won</span>
-              <span className="note">
-                Stage 2 is pipeline value; Closed Won is actual revenue.
-                Pipeline legitimately exceeding revenue is expected, not a data
-                bug.
+                Forecast values update with each quarter&rsquo;s planning doc;
+                conversion rates re-calibrate on the rolling window.
               </span>
             </div>
           </div>
@@ -469,7 +445,7 @@ export default async function Page() {
             Maintained by Marketing Analytics · Values reviewed with each
             segment re-baseline
           </div>
-          <div>All geos (*) · Multipliers applied · Active rows only</div>
+          <div>All geos (*) · Multiplier 1.0 · Active rows only</div>
         </div>
       </main>
     </div>
