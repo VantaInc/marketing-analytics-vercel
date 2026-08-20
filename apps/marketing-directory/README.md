@@ -129,8 +129,14 @@ only in which tab they read and one sentence of copy, both declared in
 `src/lib/teams.ts` — there is deliberately no per-team component, because two
 copies of a page drift apart within a quarter.
 
-**Adding a team** is an entry in `TEAMS` plus a range env var. No new route file,
-no new component, no design review.
+**Adding a team** is an entry in `TEAMS` — slug, label, blurb, and the tab name.
+No new route file, no new component, no design review.
+
+Each team's range defaults to its real tab, so `MARKETING_CATALOG_RANGE` and
+`SALES_CATALOG_RANGE` only need setting if a tab is renamed. Note that A1
+notation requires a tab name containing a space to be single-quoted —
+`'Marketing Catalog'!A1:Z1000`. `rangeFor` handles that; hand-written overrides
+must include the quotes or the Sheets API rejects the range.
 
 ### Why one spreadsheet with a tab per team
 

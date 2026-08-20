@@ -18,6 +18,8 @@ export type Team = {
   /** Env var holding the A1 range for this team's tab. */
   rangeEnvVar: string;
   slug: string;
+  /** Tab name in the catalog spreadsheet, exactly as it appears. */
+  tab: string;
 };
 
 export const TEAMS: Team[] = [
@@ -29,6 +31,7 @@ export const TEAMS: Team[] = [
     label: "Marketing",
     rangeEnvVar: "MARKETING_CATALOG_RANGE",
     slug: "marketing",
+    tab: "Marketing Catalog",
   },
   {
     blurb:
@@ -38,17 +41,24 @@ export const TEAMS: Team[] = [
     label: "Sales",
     rangeEnvVar: "SALES_CATALOG_RANGE",
     slug: "sales",
+    tab: "Sales Catalog",
   },
 ];
 
 /**
- * Falls back to `<Label>!A1:Z1000` when the env var is unset, so a team page
- * works as soon as its tab is named after the team. Wide by default: parsing is
- * header-driven, so trailing empty columns cost nothing, and a column added
- * past the range would otherwise read as empty with no warning.
+ * A1 notation requires a sheet name containing spaces or punctuation to be
+ * single-quoted, with any literal quote inside it doubled. "Marketing Catalog"
+ * unquoted is rejected by the Sheets API, so this is not cosmetic.
  */
+export function quoteSheetName(tab: string): string {
+  return /^[A-Za-z0-9_]+$/.test(tab) ? tab : `'${tab.replace(/'/g, "''")}'`;
+}
+
 export function rangeFor(team: Team): string {
-  return process.env[team.rangeEnvVar]?.trim() || `${team.label}!A1:Z1000`;
+  return (
+    process.env[team.rangeEnvVar]?.trim() ||
+    `${quoteSheetName(team.tab)}!A1:Z1000`
+  );
 }
 
 export function teamBySlug(slug: string): Team | undefined {
