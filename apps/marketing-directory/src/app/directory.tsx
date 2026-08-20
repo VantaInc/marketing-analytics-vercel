@@ -15,15 +15,27 @@ import {
 import type { Dashboard, DashboardStatus } from "@/lib/catalog";
 import { SiteHeader } from "./site-header";
 
+/*
+ * Keyed on the tool name lowercased and whitespace-collapsed. Sheet values are
+ * typed by hand, so "tableau", "Tableau ", and "Google  Sheets" all have to land
+ * on the same colour — an exact-match lookup silently fell through to grey.
+ */
 const TOOL_DOT: Record<string, string> = {
-  Looker: "var(--alp-token-dataViz-category4)",
-  Tableau: "var(--alp-token-dataViz-category6)",
-  Sigma: "var(--alp-token-dataViz-category2)",
-  Amplitude: "var(--alp-token-dataViz-category1)",
-  Sheets: "var(--alp-token-dataViz-category7)",
+  looker: "var(--alp-token-dataViz-category4)",
+  tableau: "var(--alp-token-dataViz-category6)",
+  sigma: "var(--alp-token-dataViz-category2)",
+  amplitude: "var(--alp-token-dataViz-category1)",
+  sheets: "var(--alp-token-dataViz-category7)",
+  "google sheets": "var(--alp-token-dataViz-category7)",
+  vercel: "var(--alp-token-sand-1400)",
 };
 
-const TOOL_LABEL: Record<string, string> = { Sheets: "Google Sheets" };
+const TOOL_LABEL: Record<string, string> = { sheets: "Google Sheets" };
+
+/** Sheet values are hand-typed; normalise before matching. */
+function toolKey(tool: string): string {
+  return tool.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 const STATUS: Record<
   DashboardStatus,
@@ -148,14 +160,23 @@ function CardBody({
 }
 
 export type DirectoryProps = {
+  /** Sentence under the heading — differs per team. */
+  blurb: string;
+  /** This page's path, so the header marks the right nav item active. */
+  currentPath: string;
   dashboards: Dashboard[];
+  /** Set when the catalog read failed; shown instead of an empty grid. */
+  error?: string | null;
   isSample: boolean;
   /** Omitted while the app delegates access control to Vercel Authentication. */
   viewerInitials?: string;
 };
 
 export default function Directory({
+  blurb,
+  currentPath,
   dashboards,
+  error = null,
   isSample,
   viewerInitials,
 }: DirectoryProps) {
@@ -198,7 +219,7 @@ export default function Directory({
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <SiteHeader current="/" viewerInitials={viewerInitials} />
+      <SiteHeader current={currentPath} viewerInitials={viewerInitials} />
 
       <main
         style={{
@@ -210,6 +231,33 @@ export default function Directory({
           boxSizing: "border-box",
         }}
       >
+        {error !== null ? (
+          <div
+            className="card"
+            style={{ gap: 6, marginBottom: 24, alignItems: "flex-start" }}
+          >
+            <span style={{ color: "var(--alp-token-text-danger)" }}>
+              Couldn&rsquo;t read this team&rsquo;s tab from the catalog sheet.
+            </span>
+            <code
+              style={{
+                fontSize: "var(--alp-token-fontSize-bodyS)",
+                color: "var(--alp-token-text-secondary)",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {error}
+            </code>
+            <span
+              className="muted"
+              style={{ fontSize: "var(--alp-token-fontSize-bodyS)" }}
+            >
+              Most often the tab was renamed. The range is set per team by
+              environment variable.
+            </span>
+          </div>
+        ) : null}
+
         {isSample ? (
           <div
             style={{
@@ -261,9 +309,7 @@ export default function Directory({
                 maxWidth: 560,
               }}
             >
-              Every dashboard the marketing analytics team maintains, in one
-              place. Certified dashboards are reviewed quarterly and safe to
-              share.
+              {blurb}
             </p>
           </div>
           <div
@@ -329,7 +375,7 @@ export default function Directory({
             <option value={ALL}>All tools</option>
             {tools.map((name) => (
               <option key={name} value={name}>
-                {TOOL_LABEL[name] ?? name}
+                {TOOL_LABEL[toolKey(name)] ?? name}
               </option>
             ))}
           </select>
@@ -411,11 +457,11 @@ export default function Directory({
                           height: 6,
                           borderRadius: "50%",
                           background:
-                            TOOL_DOT[dashboard.tool] ??
+                            TOOL_DOT[toolKey(dashboard.tool)] ??
                             "var(--alp-token-icon-weak)",
                         }}
                       />
-                      {TOOL_LABEL[dashboard.tool] ?? dashboard.tool}
+                      {TOOL_LABEL[toolKey(dashboard.tool)] ?? dashboard.tool}
                     </span>
                     <span
                       style={{

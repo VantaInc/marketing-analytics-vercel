@@ -10,9 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Marketing Reports",
-  description:
-    "Every dashboard the marketing analytics team maintains, in one place.",
+  title: "GTM Analytics",
+  description: "Dashboards and measurement guides for the GTM organization.",
 };
 
 export default function RootLayout({

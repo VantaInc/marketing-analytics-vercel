@@ -352,7 +352,13 @@ const SAMPLE: Dashboard[] = [
 
 export type CatalogResult = {
   dashboards: Dashboard[];
-  /** True when showing SAMPLE because the sheet is not configured or failed. */
+  /**
+   * Set when the read failed. Returned rather than thrown: two teams now share
+   * one spreadsheet, so a renamed or deleted tab is a likely accident, and it
+   * should cost that page its rows — not replace the whole site with a 500.
+   */
+  error: string | null;
+  /** True when showing SAMPLE because the sheet is not configured. */
   isSample: boolean;
 };
 
@@ -414,25 +420,43 @@ function toRecords(rows: string[][]): Dashboard[] {
  * throws on a genuine read failure so the page can surface it rather than
  * silently serving sample data as if it were real.
  */
-export async function getCatalog(): Promise<CatalogResult> {
+export async function getCatalog(range?: string): Promise<CatalogResult> {
   const spreadsheetId = process.env.DASHBOARD_CATALOG_SPREADSHEET_ID?.trim();
   const serviceAccountJson =
     process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64?.trim();
 
   if (!spreadsheetId || !serviceAccountJson) {
-    return { dashboards: SAMPLE, isSample: true };
+    return { dashboards: SAMPLE, error: null, isSample: true };
   }
 
-  const credentials = parseGoogleServiceAccountJsonBase64(serviceAccountJson);
-  const sheets = createGoogleSheetsConnector(credentials);
-  const { rows } = await sheets.readRows({
-    range: process.env.DASHBOARD_CATALOG_RANGE?.trim() || DEFAULT_RANGE,
-    spreadsheetId,
-  });
+  const resolvedRange =
+    range?.trim() ||
+    process.env.DASHBOARD_CATALOG_RANGE?.trim() ||
+    DEFAULT_RANGE;
 
-  const dashboards = toRecords(
-    rows.map((row) => row.map((cell) => String(cell ?? ""))),
-  );
+  try {
+    const credentials = parseGoogleServiceAccountJsonBase64(serviceAccountJson);
+    const sheets = createGoogleSheetsConnector(credentials);
+    const { rows } = await sheets.readRows({
+      range: resolvedRange,
+      spreadsheetId,
+    });
 
-  return { dashboards, isSample: false };
+    return {
+      dashboards: toRecords(
+        rows.map((row) => row.map((cell) => String(cell ?? ""))),
+      ),
+      error: null,
+      isSample: false,
+    };
+  } catch (cause) {
+    // Full error to the server log; only the message reaches the page.
+    console.error(`Failed to read ${resolvedRange}`, cause);
+
+    return {
+      dashboards: [],
+      error: cause instanceof Error ? cause.message : String(cause),
+      isSample: false,
+    };
+  }
 }

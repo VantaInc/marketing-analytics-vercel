@@ -543,3 +543,104 @@ input::placeholder {
   color: var(--alp-token-purple-1100);
   font-weight: var(--alp-token-fontWeight-medium);
 }
+
+/* ---- GTM Home ---- */
+
+.home-heading {
+  margin: 0;
+  font-size: var(--alp-token-fontSize-bodyL);
+  line-height: var(--alp-token-lineHeight-bodyL);
+  font-weight: var(--alp-token-fontWeight-semiBold);
+}
+
+.home-body {
+  margin: 0;
+  font-size: var(--alp-token-fontSize-bodyM);
+  line-height: var(--alp-token-lineHeight-bodyM);
+  color: var(--alp-token-text-secondary);
+}
+
+.home-body b {
+  color: var(--alp-token-text-default);
+}
+
+.home-label {
+  font-size: 0.6875rem;
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.partner-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--alp-token-borderRadius-round);
+  background: var(--alp-token-bg-neutralWeak);
+  border: 1px solid var(--alp-token-border-weak);
+  font-size: var(--alp-token-fontSize-bodyS);
+  color: var(--alp-token-text-secondary);
+}
+
+.focus-title {
+  font-size: var(--alp-token-fontSize-bodyM);
+  font-weight: var(--alp-token-fontWeight-semiBold);
+}
+
+.focus-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--alp-token-fontSize-bodyS);
+  line-height: 1.5;
+  color: var(--alp-token-text-secondary);
+}
+
+/* Team chooser */
+.team-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.team-card {
+  gap: 8px;
+  padding: 20px 22px;
+  color: var(--alp-token-text-default);
+}
+
+.team-card:hover {
+  color: var(--alp-token-text-default);
+}
+
+.team-card-title {
+  font-size: var(--alp-token-fontSize-bodyL);
+  line-height: var(--alp-token-lineHeight-bodyL);
+  font-weight: var(--alp-token-fontWeight-semiBold);
+}
+
+.team-card-blurb {
+  font-size: var(--alp-token-fontSize-bodyM);
+  line-height: var(--alp-token-lineHeight-bodyM);
+  color: var(--alp-token-text-secondary);
+}
+
+.team-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: var(--alp-token-fontSize-bodyS);
+  font-weight: var(--alp-token-fontWeight-medium);
+  color: var(--alp-token-link-default);
+}
