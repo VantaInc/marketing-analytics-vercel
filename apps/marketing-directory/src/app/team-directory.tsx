@@ -22,6 +22,8 @@ export async function TeamDirectory({ slug }: { slug: string }) {
     <Directory
       blurb={team.blurb}
       currentPath={`/${team.slug}`}
+      headerLabel={`GTM Analytics - ${team.label}`}
+      headerNav={team.nav}
       dashboards={dashboards}
       error={error}
       isSample={isSample}
