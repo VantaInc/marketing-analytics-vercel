@@ -21,6 +21,7 @@ export async function TeamDirectory({ slug }: { slug: string }) {
   return (
     <Directory
       blurb={team.blurb}
+      currentPath={`/${team.slug}`}
       dashboards={dashboards}
       error={error}
       isSample={isSample}

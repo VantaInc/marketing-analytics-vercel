@@ -117,12 +117,12 @@ not a config change — see the note in the deploy checklist.
 
 ## Pages and who owns what
 
-| Route                 | What it is                                                               | Content owned by                           |
-| --------------------- | ------------------------------------------------------------------------ | ------------------------------------------ |
-| `/`                   | GTM Analytics home — team chooser, charter, mission, focus areas, roster | This repo                                  |
-| `/marketing`          | Marketing dashboard directory                                            | Marketing's tab in the catalog sheet       |
-| `/sales`              | Sales dashboard directory                                                | Sales' tab in the catalog sheet            |
-| `/offline-conversion` | Paid media offline conversion values                                     | `VANTA.DBT.SEED_OFFLINE_CONVERSION_VALUES` |
+| Route                 | What it is                                                       | Content owned by                           |
+| --------------------- | ---------------------------------------------------------------- | ------------------------------------------ |
+| `/`                   | GTM Analytics home — team chooser, charter, mission, focus areas | This repo                                  |
+| `/marketing`          | Marketing dashboard directory                                    | Marketing's tab in the catalog sheet       |
+| `/sales`              | Sales dashboard directory                                        | Sales' tab in the catalog sheet            |
+| `/offline-conversion` | Paid media offline conversion values                             | `VANTA.DBT.SEED_OFFLINE_CONVERSION_VALUES` |
 
 Every team page renders through the same `Directory` component. Teams differ
 only in which tab they read and one sentence of copy, both declared in

@@ -2,11 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { TEAMS } from "@/lib/teams";
-import { getTeamRoster, isRosterConfigured } from "@/lib/team-roster";
 import { SiteHeader } from "./site-header";
-
-/** Re-read the roster tab at most every 5 minutes. */
-export const revalidate = 300;
 
 const PARTNERS = [
   "Marketing",
@@ -56,21 +52,7 @@ const FOCUS = [
   },
 ];
 
-function initials(name: string): string {
-  return (
-    name
-      .split(" ")
-      .map((word) => word[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "?"
-  );
-}
-
 export default async function Page() {
-  const roster = isRosterConfigured() ? await getTeamRoster() : [];
-
   return (
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
@@ -198,43 +180,6 @@ export default async function Page() {
             ))}
           </div>
         </section>
-
-        {/*
-         * Omitted entirely when no roster tab is configured, rather than
-         * rendering an empty shell or a "not set up" notice on the landing page.
-         */}
-        {roster.length > 0 ? (
-          <section
-            style={{ display: "flex", flexDirection: "column", gap: 12 }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <h2 className="home-heading">Meet the team</h2>
-              <span className="home-label" style={{ textTransform: "none" }}>
-                Photos synced from Slack profiles.
-              </span>
-            </div>
-            <div className="member-grid">
-              {roster.map((member) => (
-                <div key={member.email || member.name} className="card member">
-                  {member.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      className="member-photo"
-                      src={member.photoUrl}
-                      alt={member.name}
-                    />
-                  ) : (
-                    <span className="member-photo member-initials">
-                      {initials(member.name)}
-                    </span>
-                  )}
-                  <span className="member-name">{member.name}</span>
-                  <span className="member-role">{member.role}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
 
         <div
           style={{

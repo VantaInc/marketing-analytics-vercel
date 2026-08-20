@@ -162,6 +162,8 @@ function CardBody({
 export type DirectoryProps = {
   /** Sentence under the heading — differs per team. */
   blurb: string;
+  /** This page's path, so the header marks the right nav item active. */
+  currentPath: string;
   dashboards: Dashboard[];
   /** Set when the catalog read failed; shown instead of an empty grid. */
   error?: string | null;
@@ -172,6 +174,7 @@ export type DirectoryProps = {
 
 export default function Directory({
   blurb,
+  currentPath,
   dashboards,
   error = null,
   isSample,
@@ -216,7 +219,7 @@ export default function Directory({
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <SiteHeader current="/" viewerInitials={viewerInitials} />
+      <SiteHeader current={currentPath} viewerInitials={viewerInitials} />
 
       <main
         style={{
