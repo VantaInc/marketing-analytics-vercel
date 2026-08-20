@@ -1,30 +1,39 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
 import { TEAMS } from "@/lib/teams";
 import { SiteHeader } from "./site-header";
 
+/** Partner chips and their icons, in the mock's order. */
 const PARTNERS = [
-  "Marketing",
-  "SDR",
-  "Pre-Sales",
-  "Channel",
-  "Post-Sales",
-  "RevOps",
-  "Data Engineering",
+  { icon: "fa-bullhorn", label: "Marketing" },
+  { icon: "fa-phone", label: "SDR" },
+  { icon: "fa-handshake", label: "Pre-Sales" },
+  { icon: "fa-diagram-project", label: "Channel" },
+  { icon: "fa-rotate", label: "Post-Sales" },
+  { icon: "fa-gears", label: "RevOps" },
+  { icon: "fa-database", label: "Data Engineering" },
 ];
+
+/** Icon beside each team card, keyed by slug. */
+const TEAM_ICON: Record<string, string> = {
+  marketing: "fa-bullhorn",
+  sales: "fa-handshake",
+};
 
 const MISSION = [
   {
     body: "across all revenue teams, ensuring GTM leaders have the data they need to drive accountability and results.",
+    icon: "fa-bullseye",
     lead: "Own forecasting, productivity, and performance metrics",
   },
   {
     body: "iterating on key meetings and reporting cadences to improve decision-making.",
+    icon: "fa-calendar-check",
     lead: "Optimize the GTM rhythm of business,",
   },
   {
     body: "that enhance sales efficiency, pipeline creation, and close rates.",
+    icon: "fa-lightbulb",
     lead: "Deliver analysis and insights",
   },
 ];
@@ -35,6 +44,7 @@ const FOCUS = [
       "Build and maintain Tableau dashboards for self-serve data access, enabling business users to inspect trends and key metrics.",
       "Support recurring Forecast Calls, Operating Reviews, and SIs, providing critical performance insights.",
     ],
+    icon: "fa-sliders",
     title: "Self-service tooling & recurring deliverables",
   },
   {
@@ -42,12 +52,14 @@ const FOCUS = [
       "Conduct deep-dive ad-hoc analyses to answer specific business questions and inform strategic decisions.",
       "Identify emerging trends and opportunities to improve revenue team efficiency.",
     ],
+    icon: "fa-magnifying-glass-chart",
     title: "Custom analysis",
   },
   {
     points: [
       "Develop data-driven models to optimize pipeline creation, sales execution, and customer expansion, such as: ICP Scoring, Intent Scoring, Catalyst Health Score, and Upsell Propensity modeling to improve targeting and conversion strategies.",
     ],
+    icon: "fa-chart-line",
     title: "Advanced analytics & predictive modeling",
   },
 ];
@@ -57,7 +69,7 @@ export default async function Page() {
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <SiteHeader current="/" />
+      <SiteHeader current="/" label="GTM Analytics" />
 
       <main
         style={{
@@ -104,11 +116,15 @@ export default async function Page() {
               className="card team-card"
               href={`/${team.slug}`}
             >
+              <i
+                className={`fa-solid ${TEAM_ICON[team.slug] ?? "fa-chart-line"} team-card-icon`}
+                aria-hidden="true"
+              />
               <span className="team-card-title">{team.label}</span>
               <span className="team-card-blurb">{team.homeBlurb}</span>
               <span className="team-card-cta">
                 Go to team page
-                <ArrowRight size={13} />
+                <i className="fa-solid fa-arrow-right" aria-hidden="true" />
               </span>
             </Link>
           ))}
@@ -135,8 +151,12 @@ export default async function Page() {
               <span className="home-label">Who we partner with</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {PARTNERS.map((partner) => (
-                  <span key={partner} className="partner-chip">
-                    {partner}
+                  <span key={partner.label} className="partner-chip">
+                    <i
+                      className={`fa-solid ${partner.icon}`}
+                      aria-hidden="true"
+                    />
+                    {partner.label}
                   </span>
                 ))}
               </div>
@@ -151,8 +171,12 @@ export default async function Page() {
               <div
                 key={item.lead}
                 className="card"
-                style={{ padding: "16px 18px" }}
+                style={{ padding: "16px 18px", gap: 8 }}
               >
+                <i
+                  className={`fa-solid ${item.icon} home-icon`}
+                  aria-hidden="true"
+                />
                 <p className="home-body">
                   <b>{item.lead}</b> {item.body}
                 </p>
@@ -170,6 +194,10 @@ export default async function Page() {
                 className="card"
                 style={{ padding: "16px 18px", gap: 8 }}
               >
+                <i
+                  className={`fa-solid ${area.icon} home-icon`}
+                  aria-hidden="true"
+                />
                 <span className="focus-title">{area.title}</span>
                 <ul className="focus-list">
                   {area.points.map((point) => (

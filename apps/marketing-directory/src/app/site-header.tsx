@@ -1,19 +1,24 @@
 import Link from "next/link";
 
-const NAV = [
-  { href: "/", label: "GTM Analytics" },
-  { href: "/marketing", label: "Marketing" },
-  { href: "/sales", label: "Sales" },
-  { href: "/offline-conversion", label: "Offline conversion values" },
-];
-
 export type SiteHeaderProps = {
-  /** Path of the page rendering the header, used to mark the active tab. */
+  /** Path of the page rendering the header, used to mark the active link. */
   current: string;
+  /** Text beside the wordmark, e.g. "GTM Analytics - Marketing". */
+  label: string;
+  /**
+   * This team's links. Empty on the home page, which carries no nav — the
+   * team cards are the way in.
+   */
+  nav?: { href: string; label: string }[];
   viewerInitials?: string;
 };
 
-export function SiteHeader({ current, viewerInitials }: SiteHeaderProps) {
+export function SiteHeader({
+  current,
+  label,
+  nav = [],
+  viewerInitials,
+}: SiteHeaderProps) {
   return (
     <header
       style={{
@@ -28,12 +33,14 @@ export function SiteHeader({ current, viewerInitials }: SiteHeaderProps) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/vanta-wordmark.svg"
-          alt="Vanta"
-          style={{ height: 18, display: "block" }}
-        />
+        <Link href="/" style={{ display: "block" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/new-vanta-wordmark-dark.svg"
+            alt="Vanta"
+            style={{ height: 18, display: "block" }}
+          />
+        </Link>
         <div
           style={{
             width: 1,
@@ -41,19 +48,30 @@ export function SiteHeader({ current, viewerInitials }: SiteHeaderProps) {
             background: "var(--alp-token-border-default)",
           }}
         />
-        <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              className="nav-link"
-              href={item.href}
-              data-active={item.href === current}
-              aria-current={item.href === current ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div
+          style={{
+            fontSize: "var(--alp-token-fontSize-bodyM)",
+            fontWeight: 500,
+            color: "var(--alp-token-text-secondary)",
+          }}
+        >
+          {label}
+        </div>
+        {nav.length > 0 ? (
+          <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {nav.map((item) => (
+              <Link
+                key={item.href}
+                className="nav-link"
+                href={item.href}
+                data-active={item.href === current}
+                aria-current={item.href === current ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        ) : null}
       </div>
       {viewerInitials ? (
         <div

@@ -644,3 +644,24 @@ input::placeholder {
   font-weight: var(--alp-token-fontWeight-medium);
   color: var(--alp-token-link-default);
 }
+
+/* Font Awesome glyphs on the home page, sized as in the design. */
+.home-icon {
+  font-size: 15px;
+  color: var(--alp-token-purple-900);
+}
+
+.team-card-icon {
+  font-size: 17px;
+  color: var(--alp-token-purple-900);
+}
+
+.partner-chip i {
+  font-size: 11px;
+  color: var(--alp-token-icon-secondary);
+  margin-right: 6px;
+}
+
+.team-card-cta i {
+  font-size: 11px;
+}

@@ -18,6 +18,12 @@ export type Team = {
   /** Env var holding the A1 range for this team's tab. */
   rangeEnvVar: string;
   slug: string;
+  /**
+   * The header's links for this team. Scoped per team rather than one global
+   * nav, matching the design: Marketing carries its values page, Sales does
+   * not have one.
+   */
+  nav: { href: string; label: string }[];
   /** Tab name in the catalog spreadsheet, exactly as it appears. */
   tab: string;
 };
@@ -25,23 +31,28 @@ export type Team = {
 export const TEAMS: Team[] = [
   {
     blurb:
-      "Every dashboard the marketing analytics team maintains, in one place. Certified dashboards are reviewed quarterly and safe to share.",
-    homeBlurb:
-      "Dashboard directory, measurement guide, and paid media values for the marketing team.",
-    label: "Marketing",
-    rangeEnvVar: "MARKETING_CATALOG_RANGE",
-    slug: "marketing",
-    tab: "Marketing Catalog",
-  },
-  {
-    blurb:
       "Every dashboard the sales analytics team maintains, in one place. Certified dashboards are reviewed quarterly and safe to share.",
     homeBlurb:
       "Forecasting, pipeline, productivity, and performance dashboards for the sales org.",
     label: "Sales",
+    nav: [{ href: "/sales", label: "Dashboards" }],
     rangeEnvVar: "SALES_CATALOG_RANGE",
     slug: "sales",
     tab: "Sales Catalog",
+  },
+  {
+    blurb:
+      "Every dashboard the marketing analytics team maintains, in one place. Certified dashboards are reviewed quarterly and safe to share.",
+    homeBlurb:
+      "Dashboard directory, measurement guide, and paid media values for the marketing team.",
+    label: "Marketing",
+    nav: [
+      { href: "/marketing", label: "Dashboards" },
+      { href: "/offline-conversion", label: "Paid media values" },
+    ],
+    rangeEnvVar: "MARKETING_CATALOG_RANGE",
+    slug: "marketing",
+    tab: "Marketing Catalog",
   },
 ];
 
