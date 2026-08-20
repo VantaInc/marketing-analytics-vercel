@@ -115,6 +115,44 @@ server-side through the service account that already reads the sheet, which
 would let the files stay restricted. That is a route handler and a Drive scope,
 not a config change — see the note in the deploy checklist.
 
+## Pages and who owns what
+
+| Route                 | What it is                                                               | Content owned by                           |
+| --------------------- | ------------------------------------------------------------------------ | ------------------------------------------ |
+| `/`                   | GTM Analytics home — team chooser, charter, mission, focus areas, roster | This repo                                  |
+| `/marketing`          | Marketing dashboard directory                                            | Marketing's tab in the catalog sheet       |
+| `/sales`              | Sales dashboard directory                                                | Sales' tab in the catalog sheet            |
+| `/offline-conversion` | Paid media offline conversion values                                     | `VANTA.DBT.SEED_OFFLINE_CONVERSION_VALUES` |
+
+Every team page renders through the same `Directory` component. Teams differ
+only in which tab they read and one sentence of copy, both declared in
+`src/lib/teams.ts` — there is deliberately no per-team component, because two
+copies of a page drift apart within a quarter.
+
+**Adding a team** is an entry in `TEAMS` plus a range env var. No new route file,
+no new component, no design review.
+
+### Why one spreadsheet with a tab per team
+
+Content and design are separated so neither team needs write access to the repo:
+
+- **Content** — which dashboards, descriptions, owners, statuses — lives in each
+  team's own tab. A team edits its own tab and nothing else.
+- **Design** — layout, cards, chips, typography — lives here, behind a pull
+  request.
+
+Google Sheets permissions are per **file**, not per tab, so a shared file means
+both teams can see each other's rows and share one version history. Data →
+Protect sheets and ranges restricts editing per tab, which is enough to prevent
+accidents but is not isolation. Split into separate spreadsheets when a team
+gains an owner who should not see the other's rows — that is a one-line change
+to the range env var, not a migration.
+
+Because two teams now share one file, a renamed or deleted tab is a plausible
+accident. `getCatalog` returns the read error rather than throwing, so a bad
+range costs that page its rows and states why, instead of returning a 500 for
+the whole site.
+
 ## Setup
 
 The app reads the sheet with a **service account**, so the sheet stays private.

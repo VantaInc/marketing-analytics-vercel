@@ -1,7 +1,9 @@
 import Link from "next/link";
 
 const NAV = [
-  { href: "/", label: "Dashboards" },
+  { href: "/", label: "GTM Analytics" },
+  { href: "/marketing", label: "Marketing" },
+  { href: "/sales", label: "Sales" },
   { href: "/offline-conversion", label: "Offline conversion values" },
 ];
 
