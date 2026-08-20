@@ -164,6 +164,9 @@ export type DirectoryProps = {
   blurb: string;
   /** This page's path, so the header marks the right nav item active. */
   currentPath: string;
+  /** Text beside the wordmark, e.g. "GTM Analytics - Marketing". */
+  headerLabel: string;
+  headerNav: { href: string; label: string }[];
   dashboards: Dashboard[];
   /** Set when the catalog read failed; shown instead of an empty grid. */
   error?: string | null;
@@ -176,6 +179,8 @@ export default function Directory({
   blurb,
   currentPath,
   dashboards,
+  headerLabel,
+  headerNav,
   error = null,
   isSample,
   viewerInitials,
@@ -219,7 +224,12 @@ export default function Directory({
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <SiteHeader current={currentPath} viewerInitials={viewerInitials} />
+      <SiteHeader
+        current={currentPath}
+        label={headerLabel}
+        nav={headerNav}
+        viewerInitials={viewerInitials}
+      />
 
       <main
         style={{

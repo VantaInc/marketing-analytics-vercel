@@ -7,6 +7,7 @@ import {
   getConversionValues,
 } from "@/lib/offline-conversion";
 import { getSnowflakeContext } from "@/lib/snowflake";
+import { teamBySlug } from "@/lib/teams";
 import { SiteHeader } from "../site-header";
 
 /**
@@ -65,7 +66,11 @@ export default async function Page() {
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <SiteHeader current="/offline-conversion" />
+      <SiteHeader
+        current="/offline-conversion"
+        label="GTM Analytics - Marketing"
+        nav={teamBySlug("marketing")?.nav ?? []}
+      />
 
       <main
         style={{
